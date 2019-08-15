@@ -62,9 +62,9 @@ def preprocess_image(x, mode='caffe'):
         x /= 124.0952
         x -= 1.
     elif mode == 'caffe':
-        x[..., 0] -= 124.0952
-        x[..., 1] -= 124.0952
-        x[..., 2] -= 124.0952
+        x[..., 0] -= 0
+        x[..., 1] -= 0
+        x[..., 2] -= 0
 
     return x
 
