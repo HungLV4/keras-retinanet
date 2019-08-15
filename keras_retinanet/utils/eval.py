@@ -82,17 +82,19 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
             image = image.transpose((2, 0, 1))
 
         # run network
-        print(image.shape, np.expand_dims(image, axis=0).shape)
         boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
+        print(scores.shape)
 
         # correct boxes for image scale
         boxes /= scale
 
         # select indices which have a score above the threshold
-        indices = np.where(scores[0, :] > score_threshold)[0]
-
+        # indices = np.where(scores[0, :] > score_threshold)[0]
         # select those scores
-        scores = scores[0][indices]
+        # scores = scores[0][indices]
+
+        # debug
+        scores = scores[0][:]
 
         # find the order with which to sort the scores
         scores_sort = np.argsort(-scores)[:max_detections]

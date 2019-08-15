@@ -71,8 +71,10 @@ def draw_detections(image, boxes, scores, labels, color=None, label_to_name=None
         label_to_name   : (optional) Functor for mapping a label to a name.
         score_threshold : Threshold used for determining what detections to draw.
     """
-    selection = np.where(scores > score_threshold)[0]
-    print(len(scores), len(selection))
+    # selection = np.where(scores > score_threshold)[0]
+
+    # debug
+    selection = np.where(scores > 0)[0]
 
     for i in selection:
         c = color if color is not None else label_color(labels[i])
