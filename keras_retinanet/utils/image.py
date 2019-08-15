@@ -31,12 +31,12 @@ def read_image_bgr(path):
     """
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
     
-    # image = np.asarray(Image.open(path).convert('RGB'))
-    # return image[:, :, ::-1].copy()
+    image = np.asarray(Image.open(path).convert('RGB'))
 
-    img     = tiff.imread(path)
-    img     = np.expand_dims(img, axis=2)
-    img     = np.repeat(img, 3, axis=2)
+    # img     = tiff.imread(path)
+    # img     = np.expand_dims(img, axis=2)
+    # img     = np.repeat(img, 3, axis=2)
+    
     return img[:, :, ::-1].copy()
 
 def preprocess_image(x, mode='caffe'):
