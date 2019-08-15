@@ -27,7 +27,7 @@ class Evaluate(keras.callbacks.Callback):
         generator,
         iou_threshold=0.5,
         score_threshold=0.05,
-        max_detections=100,
+        max_detections=1000,
         save_path=None,
         tensorboard=None,
         weighted_average=False,
