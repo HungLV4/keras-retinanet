@@ -33,11 +33,11 @@ def read_image_bgr(path):
     
     image = np.asarray(Image.open(path).convert('RGB'))
 
-    # img     = tiff.imread(path)
-    # img     = np.expand_dims(img, axis=2)
-    # img     = np.repeat(img, 3, axis=2)
+    # image     = tiff.imread(path)
+    # image     = np.expand_dims(image, axis=2)
+    # image     = np.repeat(image, 3, axis=2)
     
-    return img[:, :, ::-1].copy()
+    return image[:, :, ::-1].copy()
 
 def preprocess_image(x, mode='caffe'):
     """ Preprocess an image by subtracting the ImageNet mean.
