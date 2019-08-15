@@ -18,6 +18,7 @@ from __future__ import division
 import numpy as np
 import cv2
 from PIL import Image
+import tifffile as tiff
 
 from .transform import change_transform_origin
 
@@ -29,9 +30,14 @@ def read_image_bgr(path):
         path: Path to the image.
     """
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
-    image = np.asarray(Image.open(path).convert('RGB'))
-    return image[:, :, ::-1].copy()
+    
+    # image = np.asarray(Image.open(path).convert('RGB'))
+    # return image[:, :, ::-1].copy()
 
+    img     = tiff.imread(path)
+    img     = np.expand_dims(img, axis=2)
+    img     = np.repeat(img, 3, axis=2)
+    return img[:, :, ::-1].copy()
 
 def preprocess_image(x, mode='caffe'):
     """ Preprocess an image by subtracting the ImageNet mean.
