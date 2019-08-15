@@ -256,9 +256,6 @@ def main(args=None):
     if args.config and 'anchor_parameters' in args.config:
         anchor_params = parse_anchor_parameters(args.config)
 
-    # create the display window
-    cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
-
     run(generator, args, anchor_params=anchor_params)
 
 
