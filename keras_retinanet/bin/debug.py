@@ -227,7 +227,6 @@ def run(generator, args, anchor_params):
                 draw_caption(image, [0, image.shape[0]], os.path.basename(generator.image_path(i)))
 
         ax = plt.subplot(num_images // columns + 1, columns, i + 1)
-        ax.set_title(filename)
         ax.imshow(image)
 
     plt.tight_layout()
