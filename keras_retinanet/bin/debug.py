@@ -21,6 +21,9 @@ import os
 import sys
 import cv2
 
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -164,6 +167,7 @@ def parse_args(args):
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
     csv_parser.add_argument('classes',     help='Path to a CSV file containing class label mapping.')
 
+    parser.add_argument('--num_images', help='Number of images to be shown.', type=int, default=12)
     parser.add_argument('--no-resize', help='Disable image resizing.', dest='resize', action='store_false')
     parser.add_argument('--anchors', help='Show positive anchors on the image.', action='store_true')
     parser.add_argument('--display-name', help='Display image name on the bottom left corner.', action='store_true')
@@ -184,8 +188,10 @@ def run(generator, args, anchor_params):
         args: parseargs args object.
     """
     # display images, one at a time
-    i = 0
-    while True:
+    plt.figure(figsize=(20, 10))
+    columns = 4
+    num_images = args.num_images if args.num_images < generator.size() else generator.size()
+    for i in range(num_images):
         # load the data
         image       = generator.load_image(i)
         annotations = generator.load_annotations(i)
@@ -220,24 +226,12 @@ def run(generator, args, anchor_params):
             if args.display_name:
                 draw_caption(image, [0, image.shape[0]], os.path.basename(generator.image_path(i)))
 
-        cv2.imshow('Image', image)
-        key = cv2.waitKey()
+        ax = plt.subplot(num_images // columns + 1, columns, i + 1)
+        ax.set_title(filename)
+        ax.imshow(image)
 
-        # note that the right and left keybindings are probably different for windows
-        # press right for next image and left for previous (linux)
-        # if you run macOS, it might be convenient using "n" and "m" key (key == 110 and key == 109)
-
-        if key == 83:
-            i = (i + 1) % generator.size()
-        if key == 81:
-            i -= 1
-            if i < 0:
-                i = generator.size() - 1
-
-        # press q or Esc to quit
-        if (key == ord('q')) or (key == 27):
-            return False
-
+    plt.tight_layout()
+    plt.savefig("debug.png")
     return True
 
 
