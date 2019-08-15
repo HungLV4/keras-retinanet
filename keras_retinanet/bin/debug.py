@@ -189,7 +189,7 @@ def run(generator, args, anchor_params):
     """
     # display images, one at a time
     plt.figure(figsize=(20, 10))
-    columns = 4
+    columns = 2
     num_images = args.num_images if args.num_images < generator.size() else generator.size()
     for i in range(num_images):
         # load the data
