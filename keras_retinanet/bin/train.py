@@ -187,8 +187,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
                 '{backbone}_{dataset_type}_{{epoch:02d}}.h5'.format(backbone=args.backbone, dataset_type=args.dataset_type)
             ),
             verbose=1,
-            # save_best_only=True,
-            # monitor="mAP",
+            save_best_only=True,
+            monitor="mAP",
             # mode='max'
         )
         checkpoint = RedirectModel(checkpoint, model)
@@ -514,10 +514,15 @@ def main(args=None):
     if not args.compute_val_loss:
         validation_generator = None
 
+    initial_epoch = 0
+    if args.snapshot is not None:
+        initial_epoch = int(os.path.basename(args.snapshot).split(".")[0].split("_")[-1])
+
     # start training
     return training_model.fit_generator(
         generator=train_generator,
         steps_per_epoch=args.steps,
+        initial_epoch=initial_epoch,
         epochs=args.epochs,
         verbose=1,
         callbacks=callbacks,
