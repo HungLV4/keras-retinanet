@@ -17,7 +17,6 @@ limitations under the License.
 import keras
 from ..utils.eval import evaluate
 
-
 class Evaluate(keras.callbacks.Callback):
     """ Evaluation callback for arbitrary datasets.
     """
@@ -30,6 +29,7 @@ class Evaluate(keras.callbacks.Callback):
         max_detections=100,
         save_path=None,
         tensorboard=None,
+        csv_logger=None,
         weighted_average=False,
         verbose=1
     ):
@@ -51,6 +51,7 @@ class Evaluate(keras.callbacks.Callback):
         self.max_detections  = max_detections
         self.save_path       = save_path
         self.tensorboard     = tensorboard
+        self.csv_logger      = csv_logger
         self.weighted_average = weighted_average
         self.verbose         = verbose
 
@@ -72,7 +73,9 @@ class Evaluate(keras.callbacks.Callback):
         # compute per class average precision
         total_instances = []
         precisions = []
+        label_names = []
         for label, (average_precision, num_annotations ) in average_precisions.items():
+            label_names.append(self.generator.label_to_name(label))
             if self.verbose == 1:
                 print('{:.0f} instances of class'.format(num_annotations),
                       self.generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
@@ -90,6 +93,18 @@ class Evaluate(keras.callbacks.Callback):
             summary_value.simple_value = self.mean_ap
             summary_value.tag = "mAP"
             self.tensorboard.writer.add_summary(summary, epoch)
+
+        if self.csv_logger is not None:
+            if os.path.isfile (self.csv_logger):
+                with open(self.csv_logger, mode='a', newline='') as csv_f:
+                    writer = csv.writer(csv_f)
+                    writer.writerow([epoch, self.mean_ap] + precisions)
+            else:
+                with open(self.csv_logger, mode='w', newline='') as csv_f:
+                    writer = csv.writer(csv_f)
+                    # write header
+                    writer.writerow(["epoch", "mAP"] + label_names)
+                    writer.writerow([epoch, self.mean_ap] + precisions)
 
         logs['mAP'] = self.mean_ap
 

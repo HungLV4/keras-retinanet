@@ -152,19 +152,22 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
     tensorboard_callback = None
 
-    if args.tensorboard_dir:
-        tensorboard_callback = keras.callbacks.TensorBoard(
-            log_dir                = args.tensorboard_dir,
-            histogram_freq         = 0,
-            batch_size             = args.batch_size,
-            write_graph            = True,
-            write_grads            = False,
-            write_images           = False,
-            embeddings_freq        = 0,
-            embeddings_layer_names = None,
-            embeddings_metadata    = None
-        )
-        callbacks.append(tensorboard_callback)
+    if args.logger_dir:
+        # tensorboard_callback = keras.callbacks.TensorBoard(
+        #     log_dir                = args.logger_dir,
+        #     histogram_freq         = 0,
+        #     batch_size             = args.batch_size,
+        #     write_graph            = True,
+        #     write_grads            = False,
+        #     write_images           = False,
+        #     embeddings_freq        = 0,
+        #     embeddings_layer_names = None,
+        #     embeddings_metadata    = None
+        # )
+        # callbacks.append(tensorboard_callback)
+
+        csv_logger = CSVLogger(os.path.join(args.logger_dir, 'train.csv'), append=True, separator=',')
+        callbacks.append(csv_logger)
 
     if args.evaluation and validation_generator:
         if args.dataset_type == 'coco':
@@ -173,7 +176,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             # use prediction model for evaluation
             evaluation = CocoEval(validation_generator, tensorboard=tensorboard_callback)
         else:
-            evaluation = Evaluate(validation_generator, save_path=args.save_path, tensorboard=tensorboard_callback, weighted_average=args.weighted_average)
+            evaluation = Evaluate(validation_generator, save_path=args.save_path, tensorboard=tensorboard_callback, csv_logger=os.path.join(args.logger_dir, 'eval.csv'), weighted_average=args.weighted_average)
         evaluation = RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
 
@@ -419,7 +422,7 @@ def parse_args(args):
     parser.add_argument('--steps',            help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--lr',               help='Learning rate.', type=float, default=1e-5)
     parser.add_argument('--snapshot-path',    help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
-    parser.add_argument('--tensorboard-dir',  help='Log directory for Tensorboard output', default='./logs')
+    parser.add_argument('--logger-dir',  help='Log directory for Tensorboard output', default='./logs')
     parser.add_argument('--no-snapshots',     help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation',    help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
     parser.add_argument('--freeze-backbone',  help='Freeze training of backbone layers.', action='store_true')
