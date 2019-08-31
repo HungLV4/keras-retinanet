@@ -17,6 +17,9 @@ limitations under the License.
 import keras
 from ..utils.eval import evaluate
 
+import os
+import csv
+
 class Evaluate(keras.callbacks.Callback):
     """ Evaluation callback for arbitrary datasets.
     """

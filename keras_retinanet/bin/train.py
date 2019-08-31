@@ -24,6 +24,7 @@ import warnings
 import keras
 import keras.preprocessing.image
 import tensorflow as tf
+from keras.callbacks import CSVLogger
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
