@@ -36,7 +36,7 @@ def focal(alpha=0.25, gamma=2.0):
         Args
             y_true: Tensor of target data from the generator with shape (B, N, num_classes).
             y_pred: Tensor of predicted data from the network with shape (B, N, num_classes).
-            weights: Tensor of weights for each image in batch (B, 1)
+            weights: Tensor of weights for each image in batch (B, N, 1)
 
         Returns
             The focal loss of y_pred w.r.t. y_true.
@@ -47,8 +47,10 @@ def focal(alpha=0.25, gamma=2.0):
 
         # filter out "ignore" anchors
         indices        = backend.where(keras.backend.not_equal(anchor_state, -1))
+        
         labels         = backend.gather_nd(labels, indices)
         classification = backend.gather_nd(classification, indices)
+        weights        = backend.gather_nd(weights, indices)
 
         # compute the focal loss
         alpha_factor = keras.backend.ones_like(labels) * alpha
@@ -56,7 +58,7 @@ def focal(alpha=0.25, gamma=2.0):
         focal_weight = backend.where(keras.backend.equal(labels, 1), 1 - classification, classification)
         focal_weight = alpha_factor * focal_weight ** gamma
 
-        cls_loss = focal_weight * keras.backend.binary_crossentropy(labels, classification)
+        cls_loss = focal_weight * keras.backend.binary_crossentropy(labels, classification) * weights
 
         # compute the normalizer: the number of positive anchors
         normalizer = backend.where(keras.backend.equal(anchor_state, 1))
@@ -98,6 +100,7 @@ def smooth_l1(sigma=3.0):
         indices           = backend.where(keras.backend.equal(anchor_state, 1))
         regression        = backend.gather_nd(regression, indices)
         regression_target = backend.gather_nd(regression_target, indices)
+        weights           = backend.gather_nd(weights, indices)
 
         # compute smooth L1 loss
         # f(x) = 0.5 * (sigma * x)^2          if |x| < 1 / sigma / sigma
@@ -110,6 +113,8 @@ def smooth_l1(sigma=3.0):
             0.5 * sigma_squared * keras.backend.pow(regression_diff, 2),
             regression_diff - 0.5 / sigma_squared
         )
+
+        regression_loss = regression_loss * weights
 
         # compute the normalizer: the number of positive anchors
         normalizer = keras.backend.maximum(1, keras.backend.shape(indices)[0])
