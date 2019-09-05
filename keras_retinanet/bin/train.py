@@ -25,6 +25,7 @@ import keras
 import keras.preprocessing.image
 import tensorflow as tf
 from keras.callbacks import CSVLogger
+from functools import partial
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
@@ -110,6 +111,8 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
         anchor_params = parse_anchor_parameters(config)
         num_anchors   = anchor_params.num_anchors()
 
+    weights_tensor = keras.layers.Input(shape=(1,))
+
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
     if multi_gpu > 1:
@@ -118,7 +121,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
             model = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
-        model          = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier), weights=weights, skip_mismatch=True)
+        model          = model_with_weights(backbone_retinanet(num_classes, lam_inputs=weights_tensor, num_anchors=num_anchors, modifier=modifier), weights=weights, skip_mismatch=True)
         training_model = model
 
     # make prediction model
@@ -127,8 +130,8 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
     # compile model
     training_model.compile(
         loss={
-            'regression'    : losses.smooth_l1(),
-            'classification': losses.focal()
+            'regression'    : partial(losses.smooth_l1(), weights=weights_tensor),
+            'classification': partial(losses.focal(), weights=weights_tensor)
         },
         optimizer=keras.optimizers.adam(lr=lr, clipnorm=0.001)
     )

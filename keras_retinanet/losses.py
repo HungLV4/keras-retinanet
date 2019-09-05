@@ -28,7 +28,7 @@ def focal(alpha=0.25, gamma=2.0):
     Returns
         A functor that computes the focal loss using the alpha and gamma.
     """
-    def _focal(y_true, y_pred):
+    def _focal(y_true, y_pred, weights):
         """ Compute the focal loss given the target tensor and the predicted tensor.
 
         As defined in https://arxiv.org/abs/1708.02002
@@ -78,7 +78,7 @@ def smooth_l1(sigma=3.0):
     """
     sigma_squared = sigma ** 2
 
-    def _smooth_l1(y_true, y_pred):
+    def _smooth_l1(y_true, y_pred, weights):
         """ Compute the smooth L1 loss of y_pred w.r.t. y_true.
 
         Args
