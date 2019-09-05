@@ -283,7 +283,7 @@ class Generator(keras.utils.Sequence):
         # divide into groups, one group = one batch
         self.groups = [[order[x % len(order)] for x in range(i, i + self.batch_size)] for i in range(0, len(order), self.batch_size)]
 
-    def compute_inputs(self, image_group, lam_group):
+    def compute_inputs(self, image_group, lam_group, num_anchors):
         """ Compute inputs for the network using an image_group.
         """
         # get the max image shape
@@ -291,12 +291,12 @@ class Generator(keras.utils.Sequence):
 
         # construct an image batch object
         image_batch = np.zeros((self.batch_size,) + max_shape, dtype=keras.backend.floatx())
-        lam_batch   = np.zeros((self.batch_size, 1), dtype=keras.backend.floatx())
+        lam_batch   = np.zeros((self.batch_size, num_anchors, 1), dtype=keras.backend.floatx())
 
         # copy all images to the upper left part of the image batch object
         for image_index, (image, lam) in enumerate(zip(image_group, lam_group)):
             image_batch[image_index, :image.shape[0], :image.shape[1], :image.shape[2]] = image
-            lam_batch[image_index, 0] = lam
+            lam_batch[image_index, :, 0] = lam
 
         if keras.backend.image_data_format() == 'channels_first':
             image_batch = image_batch.transpose((0, 3, 1, 2))
@@ -346,12 +346,13 @@ class Generator(keras.utils.Sequence):
         # perform preprocessing steps
         image_group, annotations_group = self.preprocess_group(image_group, annotations_group)
 
-        # compute network inputs
-        inputs = self.compute_inputs(image_group, lam_group)
-
         # compute network targets
         targets = self.compute_targets(image_group, annotations_group)
-        print(targets[0].shape, targets[1].shape)
+
+        # compute network inputs
+        inputs  = self.compute_inputs(image_group, lam_group, targets.shape[1])
+
+        print(targets[0].shape, targets[1].shape, inputs[0].shape, inputs[1].shape)
 
         return inputs, targets
 
