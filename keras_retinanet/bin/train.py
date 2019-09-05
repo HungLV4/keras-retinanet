@@ -169,7 +169,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         #     embeddings_metadata    = None
         # )
         # callbacks.append(tensorboard_callback)
-
+        makedirs(args.logger_dir)
         csv_logger = CSVLogger(os.path.join(args.logger_dir, 'train.csv'), append=True, separator=',')
         callbacks.append(csv_logger)
 
