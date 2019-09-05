@@ -59,8 +59,7 @@ def focal(alpha=0.25, gamma=2.0):
         focal_weight = alpha_factor * focal_weight ** gamma
 
         mixup_labels = keras.backend.zeros_like(labels)
-        cls_loss     = focal_weight * 
-                        (keras.backend.binary_crossentropy(labels, classification) * lams + 
+        cls_loss     = focal_weight * (keras.backend.binary_crossentropy(labels, classification) * lams + 
                          keras.backend.binary_crossentropy(mixup_labels, classification) * (1 - lams))
 
         # compute the normalizer: the number of positive anchors
@@ -101,7 +100,7 @@ def smooth_l1(sigma=3.0):
 
         # filter out "ignore" anchors
         indices           = backend.where(keras.backend.equal(anchor_state, 1))
-        
+
         regression        = backend.gather_nd(regression, indices)
         regression_target = backend.gather_nd(regression_target, indices)
         # lams              = backend.gather_nd(lams, indices)
