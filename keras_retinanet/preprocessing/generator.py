@@ -301,7 +301,7 @@ class Generator(keras.utils.Sequence):
         if keras.backend.image_data_format() == 'channels_first':
             image_batch = image_batch.transpose((0, 3, 1, 2))
 
-        return image_batch, lam_batch
+        return [image_batch, lam_batch]
 
     def generate_anchors(self, image_shape):
         anchor_params = None
@@ -331,7 +331,7 @@ class Generator(keras.utils.Sequence):
         # load images and annotations
         image_group, lam_group  = self.load_image_group(group)
         image_group, lam_group  = list(image_group), list(lam_group)
-        
+
         annotations_group       = self.load_annotations_group(group)
 
         # check validity of annotations
@@ -351,8 +351,9 @@ class Generator(keras.utils.Sequence):
 
         # compute network targets
         targets = self.compute_targets(image_group, annotations_group)
+        print(targets[0].shape, targets[1].shape)
 
-        return [inputs[0], inputs[1]], targets
+        return inputs, targets
 
     def __len__(self):
         """
