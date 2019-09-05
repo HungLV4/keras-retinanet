@@ -330,6 +330,8 @@ class Generator(keras.utils.Sequence):
         """
         # load images and annotations
         image_group, lam_group  = self.load_image_group(group)
+        image_group, lam_group  = list(image_group), list(lam_group)
+        
         annotations_group       = self.load_annotations_group(group)
 
         # check validity of annotations
