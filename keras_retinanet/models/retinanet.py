@@ -29,7 +29,7 @@ def default_classification_model(
     classification_feature_size=256,
     name='classification_submodel'
 ):
-    """ Creates the default regression submodel.
+    """ Creates the default classification submodel.
 
     Args
         num_classes                 : Number of classes to predict a score for at each feature level.
@@ -51,6 +51,7 @@ def default_classification_model(
         inputs  = keras.layers.Input(shape=(pyramid_feature_size, None, None))
     else:
         inputs  = keras.layers.Input(shape=(None, None, pyramid_feature_size))
+    
     outputs = inputs
     for i in range(4):
         outputs = keras.layers.Conv2D(
@@ -79,7 +80,13 @@ def default_classification_model(
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
 
 
-def default_regression_model(num_values, num_anchors, pyramid_feature_size=256, regression_feature_size=256, name='regression_submodel'):
+def default_regression_model(
+    num_values, 
+    num_anchors, 
+    pyramid_feature_size=256, 
+    regression_feature_size=256, 
+    name='regression_submodel'
+):
     """ Creates the default regression submodel.
 
     Args
@@ -107,6 +114,7 @@ def default_regression_model(num_values, num_anchors, pyramid_feature_size=256, 
         inputs  = keras.layers.Input(shape=(pyramid_feature_size, None, None))
     else:
         inputs  = keras.layers.Input(shape=(None, None, pyramid_feature_size))
+    
     outputs = inputs
     for i in range(4):
         outputs = keras.layers.Conv2D(
@@ -119,6 +127,7 @@ def default_regression_model(num_values, num_anchors, pyramid_feature_size=256, 
     outputs = keras.layers.Conv2D(num_anchors * num_values, name='pyramid_regression', **options)(outputs)
     if keras.backend.image_data_format() == 'channels_first':
         outputs = keras.layers.Permute((2, 3, 1), name='pyramid_regression_permute')(outputs)
+    
     outputs = keras.layers.Reshape((-1, num_values), name='pyramid_regression_reshape')(outputs)
 
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
