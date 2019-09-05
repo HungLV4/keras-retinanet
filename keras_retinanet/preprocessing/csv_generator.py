@@ -177,7 +177,7 @@ class CSVGenerator(Generator):
             raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
         self.image_names = list(self.image_data.keys())
 
-        self.image_mixup = None
+        self.mixup_names = None
         if mixup_file is not None:
             try:
                 with _open_for_csv(mixup_file) as file:
