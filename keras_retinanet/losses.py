@@ -18,7 +18,7 @@ import keras
 from . import backend
 
 
-def focal(weights, alpha=0.25, gamma=2.0):
+def focal(weights=None, alpha=0.25, gamma=2.0):
     """ Create a functor for computing the focal loss.
 
     Args
@@ -50,7 +50,9 @@ def focal(weights, alpha=0.25, gamma=2.0):
         
         labels         = backend.gather_nd(labels, indices)
         classification = backend.gather_nd(classification, indices)
-        weights        = backend.gather_nd(weights, indices)
+        
+        if weights is not None:
+            weights    = backend.gather_nd(weights, indices)
 
         # compute the focal loss
         alpha_factor = keras.backend.ones_like(labels) * alpha
@@ -58,7 +60,9 @@ def focal(weights, alpha=0.25, gamma=2.0):
         focal_weight = backend.where(keras.backend.equal(labels, 1), 1 - classification, classification)
         focal_weight = alpha_factor * focal_weight ** gamma
 
-        cls_loss = focal_weight * keras.backend.binary_crossentropy(labels, classification) * weights
+        cls_loss = focal_weight * keras.backend.binary_crossentropy(labels, classification)
+        if weights is not None:
+            clc_loss *= weights
 
         # compute the normalizer: the number of positive anchors
         normalizer = backend.where(keras.backend.equal(anchor_state, 1))
@@ -70,7 +74,7 @@ def focal(weights, alpha=0.25, gamma=2.0):
     return _focal
 
 
-def smooth_l1(weights, sigma=3.0):
+def smooth_l1(weights=None, sigma=3.0):
     """ Create a smooth L1 loss functor.
 
     Args
@@ -100,7 +104,9 @@ def smooth_l1(weights, sigma=3.0):
         indices           = backend.where(keras.backend.equal(anchor_state, 1))
         regression        = backend.gather_nd(regression, indices)
         regression_target = backend.gather_nd(regression_target, indices)
-        weights           = backend.gather_nd(weights, indices)
+        
+        if weights is not None:
+            weights           = backend.gather_nd(weights, indices)
 
         # compute smooth L1 loss
         # f(x) = 0.5 * (sigma * x)^2          if |x| < 1 / sigma / sigma
@@ -114,7 +120,8 @@ def smooth_l1(weights, sigma=3.0):
             regression_diff - 0.5 / sigma_squared
         )
 
-        regression_loss = regression_loss * weights
+        if weights is not None:
+            regression_loss = regression_loss * weights
 
         # compute the normalizer: the number of positive anchors
         normalizer = keras.backend.maximum(1, keras.backend.shape(indices)[0])
