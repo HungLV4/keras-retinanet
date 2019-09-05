@@ -25,7 +25,8 @@ import keras
 import keras.preprocessing.image
 import tensorflow as tf
 from keras.callbacks import CSVLogger
-from functools import partial
+
+from functools import partial, update_wrapper
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
@@ -51,6 +52,10 @@ from ..utils.model import freeze as freeze_model
 from ..utils.transform import random_transform_generator
 from ..utils.image import random_visual_effect_generator
 
+def wrapped_partial(func, *args, **kwargs):
+    partial_func = partial(func, *args, **kwargs)
+    update_wrapper(partial_func, func)
+    return partial_func
 
 def makedirs(path):
     # Intended behavior: try to create the directory,
@@ -130,8 +135,8 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
     # compile model
     training_model.compile(
         loss={
-            'regression'    : losses.smooth_l1(weights_tensor),
-            'classification': losses.focal(weights_tensor)
+            'regression'    : wrapped_partial(losses.smooth_l1(), weights=weights_tensor),
+            'classification': wrapped_partial(losses.focal(), weights=weights_tensor)
         },
         optimizer=keras.optimizers.adam(lr=lr, clipnorm=0.001)
     )
