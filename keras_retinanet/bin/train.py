@@ -130,8 +130,8 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
     # compile model
     training_model.compile(
         loss={
-            'regression'    : partial(losses.smooth_l1(), weights=weights_tensor),
-            'classification': partial(losses.focal(), weights=weights_tensor)
+            'regression'    : losses.smooth_l1(weights_tensor),
+            'classification': losses.focal(weights_tensor)
         },
         optimizer=keras.optimizers.adam(lr=lr, clipnorm=0.001)
     )
@@ -503,7 +503,7 @@ def main(args=None):
         )
 
     # print model summary
-    print(model.summary())
+    # print(model.summary())
 
     # this lets the generator compute backbone layer shapes using the actual backbone model
     if 'vgg' in args.backbone or 'densenet' in args.backbone:

@@ -18,7 +18,7 @@ import keras
 from . import backend
 
 
-def focal(alpha=0.25, gamma=2.0):
+def focal(weights, alpha=0.25, gamma=2.0):
     """ Create a functor for computing the focal loss.
 
     Args
@@ -28,7 +28,7 @@ def focal(alpha=0.25, gamma=2.0):
     Returns
         A functor that computes the focal loss using the alpha and gamma.
     """
-    def _focal(y_true, y_pred, weights):
+    def _focal(y_true, y_pred):
         """ Compute the focal loss given the target tensor and the predicted tensor.
 
         As defined in https://arxiv.org/abs/1708.02002
@@ -70,7 +70,7 @@ def focal(alpha=0.25, gamma=2.0):
     return _focal
 
 
-def smooth_l1(sigma=3.0):
+def smooth_l1(weights, sigma=3.0):
     """ Create a smooth L1 loss functor.
 
     Args
@@ -81,7 +81,7 @@ def smooth_l1(sigma=3.0):
     """
     sigma_squared = sigma ** 2
 
-    def _smooth_l1(y_true, y_pred, weights):
+    def _smooth_l1(y_true, y_pred):
         """ Compute the smooth L1 loss of y_pred w.r.t. y_true.
 
         Args
