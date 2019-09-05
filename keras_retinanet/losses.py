@@ -36,15 +36,17 @@ def focal(alpha=0.25, gamma=2.0):
         Args
             y_true: Tensor of target data from the generator with shape (B, N, num_classes).
             y_pred: Tensor of predicted data from the network with shape (B, N, num_classes).
+            weights: Tensor of weights for each image in batch (B, 1)
 
         Returns
             The focal loss of y_pred w.r.t. y_true.
         """
-        print(keras.backend.shape(y_true), keras.backend.shape(y_pred), keras.backend.shape(weights))
+        # print(keras.backend.shape(y_true), keras.backend.shape(y_pred), keras.backend.shape(weights))
+        print("hello")
 
-        labels         = y_true[:, :, :-1]
-        anchor_state   = y_true[:, :, -1]  # -1 for ignore, 0 for background, 1 for object
-        classification = y_pred
+        labels         = y_true[:, :, :-1] # B x N x num_classes
+        anchor_state   = y_true[:, :, -1]  # B x N x 1 (-1 for ignore, 0 for background, 1 for object)
+        classification = y_pred # B x N x num_classes
 
         # filter out "ignore" anchors
         indices        = backend.where(keras.backend.not_equal(anchor_state, -1))
@@ -90,8 +92,6 @@ def smooth_l1(sigma=3.0):
         Returns
             The smooth L1 loss of y_pred w.r.t. y_true.
         """
-        print(keras.backend.shape(y_true), keras.backend.shape(y_pred), keras.backend.shape(weights))
-        
         # separate target and state
         regression        = y_pred
         regression_target = y_true[:, :, :-1]
