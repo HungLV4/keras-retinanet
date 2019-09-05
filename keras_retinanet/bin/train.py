@@ -111,7 +111,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
         anchor_params = parse_anchor_parameters(config)
         num_anchors   = anchor_params.num_anchors()
 
-    weights_tensor = keras.layers.Input(shape=(1,))
+    weights_tensor = keras.layers.Input(shape=(None, 1))
 
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
