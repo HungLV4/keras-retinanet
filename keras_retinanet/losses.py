@@ -90,6 +90,8 @@ def smooth_l1(sigma=3.0):
         Returns
             The smooth L1 loss of y_pred w.r.t. y_true.
         """
+        print(keras.backend.shape(y_true), keras.backend.shape(y_pred), keras.backend.shape(weights))
+        
         # separate target and state
         regression        = y_pred
         regression_target = y_true[:, :, :-1]
