@@ -235,7 +235,7 @@ class CSVGenerator(Generator):
         image   = read_image_bgr(self.image_path(image_index))
         lam     = 1.0
         if self.mixup_names is not None:
-            mixup_image = read_image_bgr(self.mixup_names[np.random.randint(len(self.mixup_names))])
+            mixup_image = read_image_bgr(os.path.join(self.base_dir, self.mixup_names[np.random.randint(len(self.mixup_names))]))
             image, lam  = mixup_data(image, mixup_image)
         
         return image, lam
