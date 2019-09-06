@@ -352,9 +352,10 @@ class Generator(keras.utils.Sequence):
         # compute network inputs
         image_batch, lam_batch  = self.compute_inputs(image_group, lam_group, regression_batch.shape[1])
 
-        # labels_batch = np.concatenate((labels_batch, lam_batch), axis=-1)
+        labels_batch = np.concatenate((labels_batch, lam_batch), axis=-1)
+        print(labels_batch.shape)
 
-        return image_batch, [regression_batch, (labels_batch, lam_batch)]
+        return image_batch, [regression_batch, labels_batch]
 
     def __len__(self):
         """
