@@ -97,6 +97,7 @@ def create_generator(args):
         generator = CSVGenerator(
             args.annotations,
             args.classes,
+            mixup_file=args.mixup_path,
             transform_generator=transform_generator,
             visual_effect_generator=visual_effect_generator,
             image_min_side=args.image_min_side,
@@ -167,6 +168,7 @@ def parse_args(args):
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
     csv_parser.add_argument('classes',     help='Path to a CSV file containing class label mapping.')
 
+    parser.add_argument('--mixup-path', help='Path to CSV file containing images used as mixup', default=None)
     parser.add_argument('--num_images', help='Number of images to be shown.', type=int, default=12)
     parser.add_argument('--no-resize', help='Disable image resizing.', dest='resize', action='store_false')
     parser.add_argument('--anchors', help='Show positive anchors on the image.', action='store_true')
