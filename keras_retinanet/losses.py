@@ -41,11 +41,10 @@ def focal(alpha=0.25, gamma=2.0):
         Returns
             The focal loss of y_pred w.r.t. y_true.
         """
-        lams           = y_true[..., -1]
-        y_true         = y_true[..., :-1]
-
-        labels         = y_true[..., :-1] # B x N x num_classes
-        anchor_state   = y_true[..., -1]  # B x N x 1 (-1 for ignore, 0 for background, 1 for object)
+        lams           = y_true[:, :, -1]
+        anchor_state   = y_true[:, :, -2]  # B x N x 1 (-1 for ignore, 0 for background, 1 for object)
+        labels         = y_true[:, :, :-2] # B x N x num_classes
+        
         classification = y_pred # B x N x num_classes
 
         # filter out "ignore" anchors
