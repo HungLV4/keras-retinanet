@@ -197,10 +197,10 @@ def run(generator, args, anchor_params):
     for i in range(num_images):
         # load the data
         raw_image, lam    = generator.load_image(i)
-        print(lam)
+        print(np.max(raw_image), np.min(raw_image), np.mean(raw_image))
+        image             = generator.preprocess_image(raw_image.copy())
+        print(np.max(rimage), np.min(image), np.mean(image))
         
-        image           = generator.preprocess_image(raw_image.copy())
-
         tiff.imsave("%d.tif" % i, image)
 
         annotations = generator.load_annotations(i)
