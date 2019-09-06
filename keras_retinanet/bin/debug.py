@@ -20,6 +20,7 @@ import argparse
 import os
 import sys
 import numpy as np
+import tifffile as tiff
 
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -197,7 +198,9 @@ def run(generator, args, anchor_params):
         # load the data
         raw_image, _    = generator.load_image(i)
         image           = generator.preprocess_image(raw_image.copy())
-        
+
+        tiff.imsave("%d.tif" % i, image)
+
         annotations = generator.load_annotations(i)
         if len(annotations['labels']) > 0 :
             # apply random transformations
