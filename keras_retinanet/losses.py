@@ -60,9 +60,12 @@ def focal(alpha=0.25, gamma=2.0):
         focal_weight = backend.where(keras.backend.equal(labels, 1), 1 - classification, classification)
         focal_weight = alpha_factor * focal_weight ** gamma
 
-        mixup_labels = keras.backend.zeros_like(labels)
+        # fill alpha_factor with zeros to used as mixup labels
+        # mixup_labels = keras.backend.zeros_like(labels)
+        alpha_factor.fill(0)
+
         cls_loss     = focal_weight * (keras.backend.binary_crossentropy(labels, classification) * lams + 
-                         keras.backend.binary_crossentropy(mixup_labels, classification) * (1 - lams))
+                         keras.backend.binary_crossentropy(alpha_factor, classification) * (1 - lams))
 
         # cls_loss     = focal_weight * keras.backend.binary_crossentropy(labels, classification)
 
