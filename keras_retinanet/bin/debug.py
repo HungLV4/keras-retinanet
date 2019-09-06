@@ -199,7 +199,7 @@ def run(generator, args, anchor_params):
         raw_image, lam    = generator.load_image(i)
         print(np.max(raw_image), np.min(raw_image), np.mean(raw_image))
         image             = generator.preprocess_image(raw_image.copy())
-        print(np.max(rimage), np.min(image), np.mean(image))
+        print(np.max(image), np.min(image), np.mean(image))
         
         tiff.imsave("%d.tif" % i, image)
 
