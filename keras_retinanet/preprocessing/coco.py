@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 from ..preprocessing.generator import Generator
-from ..utils.image import read_image_bgr, read_image
+from ..utils.image import read_image_bgr
 
 import os
 import numpy as np
@@ -122,7 +122,7 @@ class CocoGenerator(Generator):
         """
         image_info = self.coco.loadImgs(self.image_ids[image_index])[0]
         path       = os.path.join(self.data_dir, 'images', self.set_name, image_info['file_name'])
-        return read_image(path)
+        return read_image_bgr(path)
 
     def load_annotations(self, image_index):
         """ Load annotations for an image_index.
