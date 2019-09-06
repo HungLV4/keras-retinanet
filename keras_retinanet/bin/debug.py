@@ -196,7 +196,9 @@ def run(generator, args, anchor_params):
     num_images = args.num_images if args.num_images < generator.size() else generator.size()
     for i in range(num_images):
         # load the data
-        raw_image, _    = generator.load_image(i)
+        raw_image, lam    = generator.load_image(i)
+        print(lam)
+        
         image           = generator.preprocess_image(raw_image.copy())
 
         tiff.imsave("%d.tif" % i, image)
