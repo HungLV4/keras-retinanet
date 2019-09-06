@@ -31,11 +31,11 @@ def read_image_bgr(path):
     """
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
     
-    image = np.asarray(Image.open(path).convert('RGB'))
+    # image = np.asarray(Image.open(path).convert('RGB'))
 
-    # image     = tiff.imread(path)
-    # image     = np.expand_dims(image, axis=2)
-    # image     = np.repeat(image, 3, axis=2)
+    image     = tiff.imread(path)
+    image     = np.expand_dims(image, axis=2)
+    image     = np.repeat(image, 3, axis=2)
     
     return image[:, :, ::-1].copy()
 
@@ -58,15 +58,16 @@ def preprocess_image(x, mode='caffe'):
     # covert always to float32 to keep compatibility with opencv
     x = x.astype(np.float32)
 
-    if mode == 'tf':
-        # x /= 124.4022
-        # x -= 1.
-        x -= 124.4022
-        x /= 148.3667
-    elif mode == 'caffe':
-        x[..., 0] -= 0
-        x[..., 1] -= 0
-        x[..., 2] -= 0
+    x -= 124.4022
+    x /= 148.3667
+    
+    # if mode == 'tf':
+    #     x /= 124.4022
+    #     x -= 1.
+    # elif mode == 'caffe':
+    #     x[..., 0] -= 0
+    #     x[..., 1] -= 0
+    #     x[..., 2] -= 0
 
     return x
 
