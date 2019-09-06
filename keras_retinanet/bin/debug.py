@@ -193,7 +193,7 @@ def run(generator, args, anchor_params):
     num_images = args.num_images if args.num_images < generator.size() else generator.size()
     for i in range(num_images):
         # load the data
-        image       = generator.load_image(i)
+        image, _    = generator.load_image(i)
         annotations = generator.load_annotations(i)
         if len(annotations['labels']) > 0 :
             # apply random transformations
