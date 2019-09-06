@@ -196,13 +196,8 @@ def run(generator, args, anchor_params):
     num_images = args.num_images if args.num_images < generator.size() else generator.size()
     for i in range(num_images):
         # load the data
-        raw_image, lam    = generator.load_image(i)
-        print(np.max(raw_image), np.min(raw_image), np.mean(raw_image))
-        image             = generator.preprocess_image(raw_image.copy())
-        print(np.max(image), np.min(image), np.mean(image))
+        image   = generator.load_rgb_image(i)
         
-        tiff.imsave("%d.tif" % i, image)
-
         annotations = generator.load_annotations(i)
         if len(annotations['labels']) > 0 :
             # apply random transformations

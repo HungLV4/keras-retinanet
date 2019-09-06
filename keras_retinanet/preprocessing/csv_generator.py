@@ -16,7 +16,7 @@ limitations under the License.
 """
 
 from .generator import Generator
-from ..utils.image import read_image_bgr
+from ..utils.image import read_image_bgr, read_image
 
 import numpy as np
 from PIL import Image
@@ -232,13 +232,16 @@ class CSVGenerator(Generator):
     def load_image(self, image_index):
         """ Load an image at the image_index.
         """
-        image   = read_image_bgr(self.image_path(image_index))
+        image   = read_image(self.image_path(image_index))
         lam     = 1.0
         if self.mixup_names is not None:
-            mixup_image = read_image_bgr(os.path.join(self.base_dir, self.mixup_names[np.random.randint(len(self.mixup_names))]))
+            mixup_image = read_image(os.path.join(self.base_dir, self.mixup_names[np.random.randint(len(self.mixup_names))]))
             image, lam  = mixup_data(image, mixup_image)
         
         return image, lam
+
+    def load_rgb_image(self, image_index):
+        return read_image_bgr(self.image_path(image_index))
 
     def load_annotations(self, image_index):
         """ Load annotations for an image_index.

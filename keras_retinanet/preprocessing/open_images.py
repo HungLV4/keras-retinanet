@@ -23,7 +23,7 @@ import numpy as np
 from PIL import Image
 
 from .generator import Generator
-from ..utils.image import read_image_bgr
+from ..utils.image import read_image_bgr, read_image
 
 
 def load_hierarchy(metadata_dir, version='v4'):
@@ -350,7 +350,7 @@ class OpenImagesGenerator(Generator):
         return path
 
     def load_image(self, image_index):
-        return read_image_bgr(self.image_path(image_index))
+        return read_image(self.image_path(image_index))
 
     def load_annotations(self, image_index):
         image_annotations = self.annotations[self.id_to_image_id[image_index]]
