@@ -350,7 +350,7 @@ class Generator(keras.utils.Sequence):
         regression_batch, labels_batch = self.compute_targets(image_group, annotations_group)
 
         # compute network inputs
-        image_batch, lam_batch  = self.compute_inputs(image_group, lam_group, targets[0].shape[1])
+        image_batch, lam_batch  = self.compute_inputs(image_group, lam_group, regression_batch.shape[1])
 
         labels_batch = np.concatenate((labels_batch, lam_batch), axis=-1)
 
