@@ -59,8 +59,10 @@ def preprocess_image(x, mode='caffe'):
     x = x.astype(np.float32)
 
     if mode == 'tf':
-        x /= 124.0952
-        x -= 1.
+        # x /= 124.4022
+        # x -= 1.
+        x -= 124.4022
+        x /= 148.3667
     elif mode == 'caffe':
         x[..., 0] -= 0
         x[..., 1] -= 0
