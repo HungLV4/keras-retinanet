@@ -28,7 +28,7 @@ def focal(alpha=0.25, gamma=2.0):
     Returns
         A functor that computes the focal loss using the alpha and gamma.
     """
-    def _focal(y_true, y_pred, lams):
+    def _focal(y_true, y_pred):
         """ Compute the focal loss given the target tensor and the predicted tensor.
 
         As defined in https://arxiv.org/abs/1708.02002
@@ -41,8 +41,11 @@ def focal(alpha=0.25, gamma=2.0):
         Returns
             The focal loss of y_pred w.r.t. y_true.
         """
-        labels         = y_true[:, :, :-1] # B x N x num_classes
-        anchor_state   = y_true[:, :, -1]  # B x N x 1 (-1 for ignore, 0 for background, 1 for object)
+        lams           = y_true[..., -1]
+        y_true         = y_true[..., :-1]
+
+        labels         = y_true[..., :-1] # B x N x num_classes
+        anchor_state   = y_true[..., -1]  # B x N x 1 (-1 for ignore, 0 for background, 1 for object)
         classification = y_pred # B x N x num_classes
 
         # filter out "ignore" anchors
@@ -83,7 +86,7 @@ def smooth_l1(sigma=3.0):
     """
     sigma_squared = sigma ** 2
 
-    def _smooth_l1(y_true, y_pred, lams):
+    def _smooth_l1(y_true, y_pred):
         """ Compute the smooth L1 loss of y_pred w.r.t. y_true.
 
         Args
@@ -103,7 +106,6 @@ def smooth_l1(sigma=3.0):
 
         regression        = backend.gather_nd(regression, indices)
         regression_target = backend.gather_nd(regression_target, indices)
-        # lams              = backend.gather_nd(lams, indices)
 
         # compute smooth L1 loss
         # f(x) = 0.5 * (sigma * x)^2          if |x| < 1 / sigma / sigma
@@ -116,8 +118,6 @@ def smooth_l1(sigma=3.0):
             0.5 * sigma_squared * keras.backend.pow(regression_diff, 2),
             regression_diff - 0.5 / sigma_squared
         )
-
-        # regression_loss = regression_loss * lams
 
         # compute the normalizer: the number of positive anchors
         normalizer = keras.backend.maximum(1, keras.backend.shape(indices)[0])

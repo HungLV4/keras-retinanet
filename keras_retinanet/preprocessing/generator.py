@@ -301,7 +301,7 @@ class Generator(keras.utils.Sequence):
         if keras.backend.image_data_format() == 'channels_first':
             image_batch = image_batch.transpose((0, 3, 1, 2))
 
-        return [image_batch, lam_batch]
+        return image_batch, lam_batch
 
     def generate_anchors(self, image_shape):
         anchor_params = None
@@ -316,14 +316,14 @@ class Generator(keras.utils.Sequence):
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
         anchors   = self.generate_anchors(max_shape)
 
-        batches = self.compute_anchor_targets(
+        regression_batch, labels_batch = self.compute_anchor_targets(
             anchors,
             image_group,
             annotations_group,
             self.num_classes()
         )
 
-        return list(batches)
+        return regression_batch, labels_batch
 
     def compute_input_output(self, group):
         """ Compute inputs and target outputs for the network.
@@ -347,12 +347,14 @@ class Generator(keras.utils.Sequence):
         image_group, annotations_group = self.preprocess_group(image_group, annotations_group)
 
         # compute network targets
-        targets = self.compute_targets(image_group, annotations_group)
+        regression_batch, labels_batch = self.compute_targets(image_group, annotations_group)
 
         # compute network inputs
-        inputs  = self.compute_inputs(image_group, lam_group, targets[0].shape[1])
+        image_batch, lam_batch  = self.compute_inputs(image_group, lam_group, targets[0].shape[1])
 
-        return inputs, targets
+        labels_batch = np.concatenate((labels_batch, lam_batch), axis=-1)
+
+        return image_batch, [regression_batch, labels_batch]
 
     def __len__(self):
         """
