@@ -41,7 +41,7 @@ def focal(alpha=0.25, gamma=2.0):
         Returns
             The focal loss of y_pred w.r.t. y_true.
         """
-        lams           = y_true[:, :, -1]
+        lams           = y_true[:, :, -1]  # B x N x 1
         anchor_state   = y_true[:, :, -2]  # B x N x 1 (-1 for ignore, 0 for background, 1 for object)
         labels         = y_true[:, :, :-2] # B x N x num_classes
         
@@ -60,13 +60,13 @@ def focal(alpha=0.25, gamma=2.0):
         focal_weight = backend.where(keras.backend.equal(labels, 1), 1 - classification, classification)
         focal_weight = alpha_factor * focal_weight ** gamma
 
-        # fill alpha_factor with zeros to used as mixup labels
-        mixup_labels = keras.backend.zeros_like(labels)
+        # labels for mixup image (i.e. background image), all box are backround
+        # mixup_labels = keras.backend.zeros_like(labels)
 
-        cls_loss     = focal_weight * (keras.backend.binary_crossentropy(labels, classification) * lams + 
-                         keras.backend.binary_crossentropy(mixup_labels, classification) * (1 - lams))
+        # cls_loss     = focal_weight * (keras.backend.binary_crossentropy(labels, classification) * lams + 
+        #                  keras.backend.binary_crossentropy(mixup_labels, classification) * (1 - lams))
 
-        # cls_loss     = focal_weight * keras.backend.binary_crossentropy(labels, classification)
+        cls_loss     = focal_weight * keras.backend.binary_crossentropy(labels, classification)
 
         # compute the normalizer: the number of positive anchors
         normalizer = backend.where(keras.backend.equal(anchor_state, 1))
