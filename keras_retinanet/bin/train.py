@@ -133,7 +133,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
     if mixup:
         cls_loss_fn = losses.mixup_focal
     else:
-        cls_loss_fn = losses.mixup
+        cls_loss_fn = losses.focal
 
     # compile model
     training_model.compile(
