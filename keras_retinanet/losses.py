@@ -49,10 +49,8 @@ def focal(alpha=0.25, gamma=2.0):
 
         # filter out "ignore" anchors
         indices        = backend.where(keras.backend.not_equal(anchor_state, -1))
-        
         labels         = backend.gather_nd(labels, indices)
         classification = backend.gather_nd(classification, indices)
-        lams           = backend.gather_nd(lams, indices)
 
         # compute the focal loss
         alpha_factor = keras.backend.ones_like(labels) * alpha
@@ -62,7 +60,6 @@ def focal(alpha=0.25, gamma=2.0):
 
         # labels for mixup image (i.e. background image), all box are backround
         # mixup_labels = keras.backend.zeros_like(labels)
-
         # cls_loss     = focal_weight * (keras.backend.binary_crossentropy(labels, classification) * lams + 
         #                  keras.backend.binary_crossentropy(mixup_labels, classification) * (1 - lams))
 
