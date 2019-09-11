@@ -90,7 +90,7 @@ def model_with_weights(model, weights, skip_mismatch):
 
 
 def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
-                  freeze_backbone=False, lr=1e-5, config=None):
+                  freeze_backbone=False, lr=1e-5, config=None, mixup=False):
     """ Creates three models (model, training_model, prediction_model).
 
     Args
@@ -130,11 +130,16 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
     # make prediction model
     prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params)
 
+    if mixup:
+        cls_loss_fn = losses.mixup_focal
+    else:
+        cls_loss_fn = losses.mixup
+
     # compile model
     training_model.compile(
         loss={
             'regression'    : losses.smooth_l1(),
-            'classification': losses.focal()
+            'classification': cls_loss_fn()
         },
         optimizer=keras.optimizers.adam(lr=lr, clipnorm=0.001)
     )
@@ -160,18 +165,6 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     tensorboard_callback = None
 
     if args.logger_dir:
-        # tensorboard_callback = keras.callbacks.TensorBoard(
-        #     log_dir                = args.logger_dir,
-        #     histogram_freq         = 0,
-        #     batch_size             = args.batch_size,
-        #     write_graph            = True,
-        #     write_grads            = False,
-        #     write_images           = False,
-        #     embeddings_freq        = 0,
-        #     embeddings_layer_names = None,
-        #     embeddings_metadata    = None
-        # )
-        # callbacks.append(tensorboard_callback)
         makedirs(args.logger_dir)
         csv_logger = CSVLogger(os.path.join(args.logger_dir, 'train.csv'), append=True, separator=',')
         callbacks.append(csv_logger)

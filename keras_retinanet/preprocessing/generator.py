@@ -283,7 +283,7 @@ class Generator(keras.utils.Sequence):
         # divide into groups, one group = one batch
         self.groups = [[order[x % len(order)] for x in range(i, i + self.batch_size)] for i in range(0, len(order), self.batch_size)]
 
-    def compute_inputs(self, image_group, lam_group, num_anchors):
+    def compute_inputs(self, image_group, mixup_group, num_anchors):
         """ Compute inputs for the network using an image_group.
         """
         # get the max image shape
@@ -291,17 +291,17 @@ class Generator(keras.utils.Sequence):
 
         # construct an image batch object
         image_batch = np.zeros((self.batch_size,) + max_shape, dtype=keras.backend.floatx())
-        lam_batch   = np.zeros((self.batch_size, num_anchors, 1), dtype=keras.backend.floatx())
+        mixup_batch = np.zeros((self.batch_size, num_anchors, 1), dtype=keras.backend.floatx())
 
         # copy all images to the upper left part of the image batch object
-        for image_index, (image, lam) in enumerate(zip(image_group, lam_group)):
+        for image_index, (image, lam) in enumerate(zip(image_group, mixup_group)):
             image_batch[image_index, :image.shape[0], :image.shape[1], :image.shape[2]] = image
-            lam_batch[image_index, :, 0] = lam
+            mixup_batch[image_index, :, 0] = lam
 
         if keras.backend.image_data_format() == 'channels_first':
             image_batch = image_batch.transpose((0, 3, 1, 2))
 
-        return image_batch, lam_batch
+        return image_batch, mixup_batch
 
     def generate_anchors(self, image_shape):
         anchor_params = None
@@ -329,8 +329,8 @@ class Generator(keras.utils.Sequence):
         """ Compute inputs and target outputs for the network.
         """
         # load images and annotations
-        image_group, lam_group  = self.load_image_group(group)
-        image_group, lam_group  = list(image_group), list(lam_group)
+        image_group, mixup_group  = self.load_image_group(group)
+        image_group, mixup_group  = list(image_group), list(mixup_group)
 
         annotations_group       = self.load_annotations_group(group)
 
@@ -350,9 +350,9 @@ class Generator(keras.utils.Sequence):
         regression_batch, labels_batch = self.compute_targets(image_group, annotations_group)
 
         # compute network inputs
-        image_batch, lam_batch  = self.compute_inputs(image_group, lam_group, regression_batch.shape[1])
+        image_batch, mixup_batch  = self.compute_inputs(image_group, mixup_group, regression_batch.shape[1])
 
-        labels_batch = np.concatenate((labels_batch, lam_batch), axis=-1)
+        labels_batch = np.concatenate((labels_batch, mixup_batch), axis=-1)
 
         return image_batch, [regression_batch, labels_batch]
 
