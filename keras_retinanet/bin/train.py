@@ -487,6 +487,10 @@ def main(args=None):
         if weights is None and args.imagenet_weights:
             weights = backbone.download_imagenet()
 
+        mixup = False
+        if args.mixup_path is nont None:
+            mixup = True
+
         print('Creating model, this may take a second...')
         model, training_model, prediction_model = create_models(
             backbone_retinanet=backbone.retinanet,
@@ -495,7 +499,8 @@ def main(args=None):
             multi_gpu=args.multi_gpu,
             freeze_backbone=args.freeze_backbone,
             lr=args.lr,
-            config=args.config
+            config=args.config,
+            mixup=mixup
         )
 
     # print model summary
