@@ -95,6 +95,8 @@ def mixup_focal(alpha=0.25, gamma=2.0):
         anchor_state   = y_true[:, :, -2]  # B x N x 1 (-1 for ignore, 0 for background, 1 for object)
         labels         = y_true[:, :, :-2] # B x N x num_classes
 
+        print(keras.backend.int_shape(lambda_weigths), keras.backend.int_shape(anchor_state), keras.backend.int_shape(labels), keras.backend.int_shape(y_pred))
+
         del y_true
         
         classification = y_pred # B x N x num_classes
