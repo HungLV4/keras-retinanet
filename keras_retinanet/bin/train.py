@@ -488,7 +488,7 @@ def main(args=None):
             weights = backbone.download_imagenet()
 
         mixup = False
-        if args.mixup_path is nont None:
+        if args.mixup_path is not None:
             mixup = True
 
         print('Creating model, this may take a second...')
