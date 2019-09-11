@@ -94,6 +94,8 @@ def mixup_focal(alpha=0.25, gamma=2.0):
         lambda_weigths = y_true[:, :, -1]  # B x N x 1
         anchor_state   = y_true[:, :, -2]  # B x N x 1 (-1 for ignore, 0 for background, 1 for object)
         labels         = y_true[:, :, :-2] # B x N x num_classes
+
+        del y_true
         
         classification = y_pred # B x N x num_classes
 
@@ -103,11 +105,15 @@ def mixup_focal(alpha=0.25, gamma=2.0):
         classification = backend.gather_nd(classification, indices)
         lambda_weigths = backend.gather_nd(lambda_weigths, indices)
 
+        del indices
+
         # compute the focal weights
         alpha_factor = keras.backend.ones_like(labels) * alpha
         alpha_factor = backend.where(keras.backend.equal(labels, 1), alpha_factor, 1 - alpha_factor)
         focal_weight = backend.where(keras.backend.equal(labels, 1), 1 - classification, classification)
         focal_weight = alpha_factor * focal_weight ** gamma
+
+        del alpha_factor
 
         # generate mixup label and
         # compute mixup_lambda_weights and mixup_focal_weights
@@ -116,9 +122,10 @@ def mixup_focal(alpha=0.25, gamma=2.0):
         mixup_lambda_weights    = 1 - lambda_weigths
         # since all mixup labels is 0, all mixup alpha factor is (1 - alpha)
         mixup_alpha_factor      = keras.backend.ones_like(mixup_labels) * (1- alpha)
-        # since all mixup labels is 0, all focal weight factor is (1 - alpha)
         mixup_focal_weight      = keras.backend.ones_like(mixup_labels) * classification
         mixup_focal_weight      = mixup_alpha_factor * mixup_focal_weight ** gamma
+
+        del mixup_alpha_factor
 
         # final focal loss is the combination of two focal loss
         cls_loss = focal_weight * lambda_weigths * keras.backend.binary_crossentropy(labels, classification) \
