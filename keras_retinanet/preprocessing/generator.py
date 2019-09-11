@@ -354,8 +354,6 @@ class Generator(keras.utils.Sequence):
 
         labels_batch = np.concatenate((labels_batch, mixup_batch), axis=-1)
 
-        print(image_batch.shape, regression_batch.shape, labels_batch.shape)
-
         return image_batch, [regression_batch, labels_batch]
 
     def __len__(self):
