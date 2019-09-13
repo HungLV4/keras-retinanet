@@ -90,7 +90,7 @@ def model_with_weights(model, weights, skip_mismatch):
 
 
 def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
-                  freeze_backbone=False, lr=1e-5, config=None, mixup=False):
+                  freeze_backbone=False, lr=1e-5, config=None, mixup=False, nms_threshold=0.5):
     """ Creates three models (model, training_model, prediction_model).
 
     Args
@@ -128,7 +128,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
         training_model = model
 
     # make prediction model
-    prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params)
+    prediction_model = retinanet_bbox(model=model, nms_threshold=nms_threshold, anchor_params=anchor_params)
 
     if mixup:
         cls_loss_fn = losses.mixup_focal
@@ -422,6 +422,7 @@ def parse_args(args):
     parser.add_argument('--epochs',           help='Number of epochs to train.', type=int, default=50)
     parser.add_argument('--steps',            help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--lr',               help='Learning rate.', type=float, default=1e-5)
+    parser.add_argument('--nms-threshold',    help='NMS threshold.', type=float, default=0.5)
     parser.add_argument('--mixup-path',       help='Path to CSV file containing images used as mixup', default=None)
     parser.add_argument('--snapshot-path',    help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
     parser.add_argument('--logger-dir',       help='Log directory for Tensorboard output', default='./logs')
@@ -500,7 +501,8 @@ def main(args=None):
             freeze_backbone=args.freeze_backbone,
             lr=args.lr,
             config=args.config,
-            mixup=mixup
+            mixup=mixup,
+            nms_threshold=args.nms_threshold
         )
 
     # print model summary
