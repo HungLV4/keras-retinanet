@@ -103,6 +103,9 @@ def mixup_focal(alpha=0.25, gamma=2.0):
         classification = backend.gather_nd(classification, indices)
         lambda_weigths = backend.gather_nd(lambda_weigths, indices)
 
+        del y_true
+        del indices
+
         # compute the focal weights
         alpha_factor = keras.backend.ones_like(labels) * alpha
         alpha_factor = backend.where(keras.backend.equal(labels, 1), alpha_factor, 1 - alpha_factor)
