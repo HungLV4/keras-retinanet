@@ -120,7 +120,7 @@ class FilterDetections(keras.layers.Layer):
         self,
         nms                   = True,
         class_specific_filter = True,
-        nms_threshold         = 0.2,
+        nms_threshold         = 0.1,
         score_threshold       = 0.05,
         max_detections        = 300,
         parallel_iterations   = 32,
