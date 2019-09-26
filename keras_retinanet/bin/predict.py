@@ -204,11 +204,11 @@ def main(args=None):
         anchor_params = parse_anchor_parameters(args.config)
 
     model = RetinaNetWrapper(args.model, args.convert_model, args.backbone,
-                             anchor_params   = anchor_params, 
-                             score_threshold = args.score_threshold,
-                             max_detections  = args.max_detections,
-                             image_min_side  = args.image_min_side,
-                             image_max_side  = args.image_max_side)
+                            anchor_params   = anchor_params,
+                            score_threshold = args.score_threshold,
+                            max_detections  = args.max_detections,
+                            image_min_side  = args.image_min_side,
+                            image_max_side  = args.image_max_side)
 
     image = cv2.imread(args.image_path)
     all_detections = model.predict(image, args.save_path)
