@@ -41,8 +41,9 @@ def read_image_bgr(path):
     # read images
     image = tiff.imread(path)
     image = image[..., :3]
-    image = image.astype(np.float32)
+
     # scale to uint8
+    image = image.astype(np.float32)
     image = image / np.max(image) * 255
     image = image.astype(np.uint8)
 
