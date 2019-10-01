@@ -38,7 +38,14 @@ def read_image_bgr(path):
         path: Path to the image.
     """
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
-    image = np.asarray(Image.open(path).convert('RGB'))
+    # read images
+    image = tiff.imread(tif_filepath)
+    image = image[..., :3]
+    image = image.astype(np.float32)
+    # scale to uint8
+    image = image / np.max(image) * 255
+    image = image.astype(np.uint8)
+
     return image[:, :, ::-1].copy()
 
 def preprocess_image(x, mode='caffe'):
