@@ -29,7 +29,6 @@ def read_image(path):
         image     = np.repeat(image, 3, axis=2)
     
     image     = image[..., :3]
-
     return image
 
 def read_image_bgr(path):
@@ -42,13 +41,12 @@ def read_image_bgr(path):
     # read images
     image = tiff.imread(path)
     image = image[..., :3]
-    image = image[:, :, ::-1]
     image = image.astype(np.float32)
     # scale to uint8
     image = image / np.max(image) * 255
     image = image.astype(np.uint8)
 
-    return image[:, :, ::-1].copy()
+    return image
 
 def preprocess_image(x, mode='caffe'):
     """ Preprocess an image by subtracting the ImageNet mean.
