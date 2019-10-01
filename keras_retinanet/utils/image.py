@@ -29,7 +29,8 @@ def read_image(path):
         image     = np.repeat(image, 3, axis=2)
     
     image     = image[..., :3]
-    return image[:, :, ::-1].copy()
+
+    return image
 
 def read_image_bgr(path):
     """ Read an image in BGR format.
@@ -41,6 +42,7 @@ def read_image_bgr(path):
     # read images
     image = tiff.imread(path)
     image = image[..., :3]
+    image = image[:, :, ::-1]
     image = image.astype(np.float32)
     # scale to uint8
     image = image / np.max(image) * 255
