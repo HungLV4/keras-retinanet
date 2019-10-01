@@ -39,7 +39,7 @@ def read_image_bgr(path):
     """
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
     # read images
-    image = tiff.imread(tif_filepath)
+    image = tiff.imread(path)
     image = image[..., :3]
     image = image.astype(np.float32)
     # scale to uint8
