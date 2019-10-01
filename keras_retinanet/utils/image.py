@@ -24,8 +24,10 @@ from .transform import change_transform_origin
 
 def read_image(path):
     image     = tiff.imread(path)
-    image     = np.expand_dims(image, axis=2)
-    image     = np.repeat(image, 3, axis=2)
+    image     = image[..., :3]
+
+    # image     = np.expand_dims(image, axis=2)
+    # image     = np.repeat(image, 3, axis=2)
     return image[:, :, ::-1].copy()
 
 def read_image_bgr(path):
@@ -57,9 +59,14 @@ def preprocess_image(x, mode='caffe'):
     # covert always to float32 to keep compatibility with opencv
     x = x.astype(np.float32)
 
-    x -= 124.4022
-    x /= 148.3667
+    # for TerraSAR-X
+    # x -= 124.4022
+    # x /= 148.3667
     
+    # for Planet
+    x -= [4487.5952, 5927.2085, 6411.1655]
+    x /= [1840.8862, 1821.3116, 2184.0283]
+
     # if mode == 'tf':
     #     x /= 124.4022
     #     x -= 1.
