@@ -38,7 +38,7 @@ from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.keras_version import check_keras_version
 from ..utils.transform import random_transform_generator
-from ..utils.visualization import draw_annotations, draw_boxes
+from ..utils.visualization import draw_annotations, draw_boxes, draw_caption
 from ..utils.anchors import anchors_for_shape, compute_gt_annotations
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.image import random_visual_effect_generator
