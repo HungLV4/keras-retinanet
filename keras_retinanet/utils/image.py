@@ -28,7 +28,15 @@ def read_image(path):
         image     = np.expand_dims(image, axis=2)
         image     = np.repeat(image, 3, axis=2)
     
-    image     = image[..., :3]
+    # Planet image hase two formats RGB (3 channels) or BGRP (4 channels)
+    # if 3 channels, reverse to BGR format
+    reverse = False
+    if image.shape[2] == 3:
+        reverse = True
+    image = image[..., :3]
+    if reverse:
+        image = image[..., ::-1].copy()
+
     return image
 
 def read_image_bgr(path):
@@ -40,7 +48,15 @@ def read_image_bgr(path):
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
     # read images
     image = tiff.imread(path)
+
+    # Planet image hase two formats RGB (3 channels) or BGRP (4 channels)
+    # if 3 channels, reverse to RGB format for visualization
+    reverse = False
+    if image.shape[2] == 4:
+        reverse = True
     image = image[..., :3]
+    if reverse:
+        image = image[..., ::-1].copy()
 
     # scale to uint8
     image = image.astype(np.float32)
@@ -63,7 +79,7 @@ def preprocess_image(x, mode='caffe'):
         The input with the ImageNet mean subtracted.
     """
     # mostly identical to "https://github.com/keras-team/keras-applications/blob/master/keras_applications/imagenet_utils.py"
-    # except for converting RGB -> BGR since we assume BGR already
+    # WE ASSUME BGR ALREADY
 
     # covert always to float32 to keep compatibility with opencv
     x = x.astype(np.float32)
@@ -73,8 +89,8 @@ def preprocess_image(x, mode='caffe'):
     # x /= 148.3667
     
     # for Planet
-    x -= [4487.5952, 5927.2085, 6411.1655]
-    x /= [1840.8862, 1821.3116, 2184.0283]
+    x -= [6646.1636, 5853.3188, 4089.8762]
+    x /= [1980.1919, 1786.3191, 1544.9279]
 
     # if mode == 'tf':
     #     x /= 124.4022
