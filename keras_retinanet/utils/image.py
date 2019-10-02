@@ -52,7 +52,7 @@ def read_image_bgr(path):
     # Planet image hase two formats RGB (3 channels) or BGRP (4 channels)
     # if 3 channels, reverse to RGB format for visualization
     reverse = False
-    if image.shape[2] == 4:
+    if image.shape[2] == 3:
         reverse = True
     image = image[..., :3]
     if reverse:
