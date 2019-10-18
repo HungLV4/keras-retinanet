@@ -29,7 +29,7 @@ TRAINING_MAX_SIZE = 1333
 def get_session():
     """ Construct a modified tf session.
     """
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
 
