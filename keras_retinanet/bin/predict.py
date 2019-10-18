@@ -31,7 +31,7 @@ def get_session():
     """
     config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    return tf.Session(config=config)
+    return tf.compat.v1.Session(config=config)
 
 def draw_box(image, box, color, thickness=2):
     """ Draws a box on an image with a given color.
