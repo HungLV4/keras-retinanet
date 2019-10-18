@@ -50,7 +50,7 @@ def read_image_bgr(path):
     image = tiff.imread(path)
 
     # Planet image hase two formats RGB (3 channels) or BGRP (4 channels)
-    # if 3 channels, reverse to RGB format for visualization
+    # if 3 channels, reverse to BGR format for visualization (OpenCV is BGR)
     reverse = False
     if image.shape[2] == 3:
         reverse = True
@@ -64,6 +64,13 @@ def read_image_bgr(path):
     image = image.astype(np.uint8)
 
     return image
+
+def to_bgr(image):
+    image = image.astype(np.float32)
+    image = image / np.max(np.max(image, axis=0), axis=0) * 255
+    image = image.astype(np.uint8)
+
+    return image    
 
 def preprocess_image(x, mode='caffe'):
     """ Preprocess an image by subtracting the ImageNet mean.

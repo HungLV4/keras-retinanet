@@ -9,6 +9,10 @@ import tensorflow as tf
 
 import cv2
 
+import gdal
+from gdalconst import *
+from osgeo import gdal_array, osr
+
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -17,7 +21,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
-from ..utils.image import read_image_bgr, read_image, resize_image, preprocess_image
+from ..utils.image import to_bgr, preprocess_image
 
 TRAINING_MIN_SIZE = 800
 TRAINING_MAX_SIZE = 1333
@@ -87,76 +91,54 @@ class RetinaNetWrapper(object):
         self.image_max_side  = image_max_side
         self.num_classes     = max(params.CLASSES.values()) + 1
 
-    def predict(self, raw_image, save_path=None):
-        image        = preprocess_image(raw_image.copy())
-        image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
+    def predict_large_image(self, image_path, save_path=None):
+        tilesize_row = 1024
+        tilesize_col = 1024
 
-        if keras.backend.image_data_format() == 'channels_first':
-            image = image.transpose((2, 0, 1))
+        dataset     = gdal.Open(image_path, GA_ReadOnly)
+        size_column = dataset.RasterXSize
+        size_row    = dataset.RasterYSize
+        size_band   = dataset.RasterCount
+        for i in range(0, size_row, tilesize_row):
+            for j in range(0, size_column, tilesize_col):
+                rows = tilesize_row if i + tilesize_row < size_row else size_row - i
+                cols = tilesize_col if j + tilesize_col < size_column else size_column - j
+            
+                raw_image   = dataset.GetRasterBand(1).ReadAsArray(j, i, cols, rows).astype(np.float)      
+                image_bgr   = to_bgr(img.copy())
 
-        # run network
-        boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
-        # correct boxes for image scale
-        boxes /= scale
+                image        = preprocess_image(raw_image.copy())
+                image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
-        # select indices which have a score above the threshold
-        indices = np.where(scores[0, :] > self.score_threshold)[0]
+                if keras.backend.image_data_format() == 'channels_first':
+                    image = image.transpose((2, 0, 1))
 
-        # select those scores
-        scores = scores[0][indices]
+                # run network
+                boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
+                # correct boxes for image scale
+                boxes /= scale
 
-        # find the order with which to sort the scores
-        scores_sort = np.argsort(-scores)[:self.max_detections]
+                # select indices which have a score above the threshold
+                indices = np.where(scores[0, :] > self.score_threshold)[0]
 
-        # select detections
-        image_boxes      = boxes[0, indices[scores_sort], :]
-        image_scores     = scores[scores_sort]
-        image_labels     = labels[0, indices[scores_sort]]
-        image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
+                # select those scores
+                scores = scores[0][indices]
 
-        if save_path is not None:
-            draw_detections(raw_image, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
-            cv2.imwrite(os.path.join(save_path, 'detection.png'), raw_image)
-        
-        # copy detections to all_detections
-        all_detections = image_detections[image_detections[:, -1] == self.num_classes - 1, :-1]
+                # find the order with which to sort the scores
+                scores_sort = np.argsort(-scores)[:self.max_detections]
 
-        return all_detections
+                # select detections
+                image_boxes      = boxes[0, indices[scores_sort], :]
+                image_scores     = scores[scores_sort]
+                image_labels     = labels[0, indices[scores_sort]]
 
-    def predict_large_image(self, raw_image, save_path=None):
-        
-        image        = preprocess_image(raw_image.copy())
-        image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
-
-        if keras.backend.image_data_format() == 'channels_first':
-            image = image.transpose((2, 0, 1))
-
-        # run network
-        boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
-        # correct boxes for image scale
-        boxes /= scale
-
-        # select indices which have a score above the threshold
-        indices = np.where(scores[0, :] > self.score_threshold)[0]
-
-        # select those scores
-        scores = scores[0][indices]
-
-        # find the order with which to sort the scores
-        scores_sort = np.argsort(-scores)[:self.max_detections]
-
-        # select detections
-        image_boxes      = boxes[0, indices[scores_sort], :]
-        image_scores     = scores[scores_sort]
-        image_labels     = labels[0, indices[scores_sort]]
-        image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
-
-        if save_path is not None:
-            draw_detections(raw_image, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
-            cv2.imwrite(os.path.join(save_path, 'detection.png'), raw_image)
-        
-        # copy detections to all_detections
-        all_detections = image_detections[image_detections[:, -1] == self.num_classes - 1, :-1]
+                if save_path is not None:
+                    draw_detections(image_bgr, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
+                    cv2.imwrite(os.path.join(save_path, '%d_%d.png' % (i, j)), image_bgr)
+                
+                image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)                
+                # copy detections to all_detections
+                all_detections = image_detections[image_detections[:, -1] == self.num_classes - 1, :-1]
 
         return all_detections
 
@@ -165,7 +147,6 @@ def parse_args(args):
     """
     parser     = argparse.ArgumentParser(description='Evaluation script for a RetinaNet network.')
     parser.add_argument('--image-path',       help='Path for image need detections.')
-    parser.add_argument('--preview-path',     help='Path for preview image to draw detections.')
     parser.add_argument('--model',            help='Path to RetinaNet model.')
     parser.add_argument('--convert-model',    help='Convert the model to an inference model (ie. the input is a training model).', action='store_true')
     parser.add_argument('--backbone',         help='The backbone of the model.', default='resnet50')
@@ -204,14 +185,13 @@ def main(args=None):
         anchor_params = parse_anchor_parameters(args.config)
 
     model = RetinaNetWrapper(args.model, args.convert_model, args.backbone,
-                            anchor_params   = anchor_params,
-                            score_threshold = args.score_threshold,
-                            max_detections  = args.max_detections,
-                            image_min_side  = args.image_min_side,
-                            image_max_side  = args.image_max_side)
+                                anchor_params   = anchor_params,
+                                score_threshold = args.score_threshold,
+                                max_detections  = args.max_detections,
+                                image_min_side  = args.image_min_side,
+                                image_max_side  = args.image_max_side)
 
-    image = cv2.imread(args.image_path)
-    all_detections = model.predict(image, args.save_path)
+    all_detections = model.predict_large_image(args.image_path, args.save_path)
 
     import csv
     with open(os.path.join(args.save_path, 'detections.csv'), mode='w') as csv_file:
