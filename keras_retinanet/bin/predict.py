@@ -120,8 +120,10 @@ class RetinaNetWrapper(object):
                 raw_image, scale    = resize_image(raw_image, min_side=self.image_min_side, max_side=self.image_max_side)
 
                 if keras.backend.image_data_format() == 'channels_first':
-                    image = image.transpose((2, 0, 1))
+                    raw_image = raw_image.transpose((2, 0, 1))
 
+                print(raw_image.shape)
+                
                 # run network
                 boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(raw_image, axis=0))[:3]
                 # correct boxes for image scale
