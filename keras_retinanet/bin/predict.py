@@ -31,9 +31,9 @@ TRAINING_MAX_SIZE = 1333
 def get_session():
     """ Construct a modified tf session.
     """
-    config = tf.compat.ConfigProto()
+    config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    return tf.compat.v1.Session(config=config)
+    return tf.Session(config=config)
 
 def draw_box(image, box, color, thickness=2):
     """ Draws a box on an image with a given color.
