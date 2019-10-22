@@ -144,10 +144,12 @@ class RetinaNetWrapper(object):
                     cv2.imwrite(os.path.join(save_path, '%d_%d.png' % (i, j)), image_bgr)
                 
                 image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)                
+                print(type(image_detections))
+                
                 # copy detections to all_detections
-                all_detections = image_detections[image_detections[:, -1] == 0, :-1]
+                # all_detections = image_detections[image_detections[:, -1] == 0, :-1]
 
-        return all_detections
+        # return all_detections
 
 def parse_args(args):
     """ Parse the arguments.
@@ -199,14 +201,14 @@ def main(args=None):
                                 image_min_side  = args.image_min_side,
                                 image_max_side  = args.image_max_side)
 
-    all_detections = model.predict_large_image(args.image_path, args.save_path, args.image_type)
+    model.predict_large_image(args.image_path, args.save_path, args.image_type)
 
-    import csv
-    with open(os.path.join(args.save_path, 'detections.csv'), mode='w') as csv_file:
-        writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    # import csv
+    # with open(os.path.join(args.save_path, 'detections.csv'), mode='w') as csv_file:
+    #     writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
-        for detection in all_detections:
-            writer.writerow(detection)
+    #     for detection in all_detections:
+    #         writer.writerow(detection)
 
 if __name__ == '__main__':
     main()
