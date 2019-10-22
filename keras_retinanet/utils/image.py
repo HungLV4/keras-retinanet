@@ -59,10 +59,8 @@ def read_image_bgr(path):
         image = image[..., ::-1].copy()
 
     # scale to uint8
-    image = image.astype(np.float32)
-    image = image / np.max(np.max(image, axis=0), axis=0) * 255
-    image = image.astype(np.uint8)
-
+    image = to_bgr(image)
+    
     return image
 
 def to_bgr(image):
