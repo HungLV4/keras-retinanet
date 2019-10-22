@@ -83,8 +83,7 @@ class RetinaNetWrapper(object):
         
         # load the model
         print('Loading model, this may take a second...')
-        with tf.device('/cpu:0'):
-            self.model = models.load_model(model_path, backbone_name=backbone)
+        self.model = models.load_model(model_path, backbone_name=backbone)
        
        # optionally convert the model
         if convert_model:
@@ -97,13 +96,47 @@ class RetinaNetWrapper(object):
         self.image_min_side  = image_min_side
         self.image_max_side  = image_max_side
 
+    def predict(self, image_path, save_path=None, image_type="planet"):
+        raw_image    = read_image(image_path)
+
+        image        = preprocess_image(raw_image.copy())
+        image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
+
+        if keras.backend.image_data_format() == 'channels_first':
+            image = image.transpose((2, 0, 1))
+
+        # run network
+        boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
+        # correct boxes for image scale
+        boxes /= scale
+
+        # select indices which have a score above the threshold
+        indices = np.where(scores[0, :] > self.score_threshold)[0]
+
+        # select those scores
+        scores = scores[0][indices]
+
+        # find the order with which to sort the scores
+        scores_sort = np.argsort(-scores)[:self.max_detections]
+
+        # select detections
+        image_boxes      = boxes[0, indices[scores_sort], :]
+        image_scores     = scores[scores_sort]
+        image_labels     = labels[0, indices[scores_sort]]
+        image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
+
+        if save_path is not None:
+            draw_detections(raw_image, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
+            cv2.imwrite(os.path.join(save_path, 'detection.png'), raw_image)
+        
+        # copy detections to all_detections
+        all_detections = image_detections[image_detections[:, -1] == self.num_classes - 1, :-1]
+
+        return all_detections
+
     def predict_large_image(self, image_path, save_path=None, image_type="planet"):
         tilesize_row = 1024
         tilesize_col = 1024
-
-        # dataset     = gdal.Open(image_path, GA_ReadOnly)
-        # size_column = dataset.RasterXSize
-        # size_row    = dataset.RasterYSize
 
         image       = read_image(image_path)
         size_row    = image.shape[0]
@@ -114,7 +147,6 @@ class RetinaNetWrapper(object):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
-                # raw_image   = dataset.GetRasterBand(1).ReadAsArray(j, i, cols, rows).astype(np.float)      
                 raw_image   = image[i: i + rows, j: j + cols, ...]
                 image_bgr   = to_bgr(raw_image.copy())
 
@@ -205,7 +237,7 @@ def main(args=None):
                                 image_min_side  = args.image_min_side,
                                 image_max_side  = args.image_max_side)
 
-    model.predict_large_image(args.image_path, args.save_path, args.image_type)
+    model.predict(args.image_path, args.save_path, args.image_type)
 
     # import csv
     # with open(os.path.join(args.save_path, 'detections.csv'), mode='w') as csv_file:
