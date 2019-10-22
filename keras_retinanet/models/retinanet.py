@@ -332,8 +332,8 @@ def retinanet_bbox(
 
     # create RetinaNet model
     if model is None:
-        # model = retinanet(num_anchors=anchor_params.num_anchors(), **kwargs)
-        model = retinanet(num_anchors=AnchorParameters.default.num_anchors(), **kwargs)
+        model = retinanet(num_anchors=anchor_params.num_anchors(), **kwargs)
+        # model = retinanet(num_anchors=AnchorParameters.default.num_anchors(), **kwargs)
         
     else:
         assert_training_model(model)

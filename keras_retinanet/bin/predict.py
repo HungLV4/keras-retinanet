@@ -134,7 +134,7 @@ class RetinaNetWrapper(object):
             cv2.imwrite(save_path, bgr_image)
         
         # copy detections to all_detections
-        all_detections = image_detections[image_detections[:, -1] == self.num_classes - 1, :-1]
+        all_detections = image_detections[image_detections[:, -1] == 0, :-1]
 
         return all_detections
 
