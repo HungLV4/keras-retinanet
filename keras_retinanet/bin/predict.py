@@ -96,9 +96,7 @@ class RetinaNetWrapper(object):
         self.image_min_side  = image_min_side
         self.image_max_side  = image_max_side
 
-    def predict(self, image_path, save_path=None, image_type="planet"):
-        raw_image    = read_image(image_path)
-
+    def predict(self, raw_image, bgr_image=None, save_path=None, image_type="planet"):
         image        = preprocess_image(raw_image.copy())
         image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
@@ -126,8 +124,11 @@ class RetinaNetWrapper(object):
         image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
 
         if save_path is not None:
-            draw_detections(raw_image, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
-            cv2.imwrite(os.path.join(save_path, 'detection.png'), raw_image)
+            if bgr_image is None:
+                bgr_image = to_bgr(raw_image.copy())
+            
+            draw_detections(bgr_image, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
+            cv2.imwrite(save_path, bgr_image)
         
         # copy detections to all_detections
         all_detections = image_detections[image_detections[:, -1] == self.num_classes - 1, :-1]
@@ -135,8 +136,8 @@ class RetinaNetWrapper(object):
         return all_detections
 
     def predict_large_image(self, image_path, save_path=None, image_type="planet"):
-        tilesize_row = 1024
-        tilesize_col = 1024
+        tilesize_row = 1025
+        tilesize_col = 1025
 
         image       = read_image(image_path)
         size_row    = image.shape[0]
@@ -150,42 +151,7 @@ class RetinaNetWrapper(object):
                 raw_image   = image[i: i + rows, j: j + cols, ...]
                 image_bgr   = to_bgr(raw_image.copy())
 
-                raw_image           = preprocess_image(raw_image, image_type)
-                raw_image, scale    = resize_image(raw_image, min_side=self.image_min_side, max_side=self.image_max_side)
-
-                if keras.backend.image_data_format() == 'channels_first':
-                    raw_image = raw_image.transpose((2, 0, 1))
-
-                # run network
-                boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(raw_image, axis=0))[:3]
-                # correct boxes for image scale
-                boxes /= scale
-
-                # select indices which have a score above the threshold
-                indices = np.where(scores[0, :] > self.score_threshold)[0]
-
-                # select those scores
-                scores = scores[0][indices]
-
-                # find the order with which to sort the scores
-                scores_sort = np.argsort(-scores)[:self.max_detections]
-
-                # select detections
-                image_boxes      = boxes[0, indices[scores_sort], :]
-                image_scores     = scores[scores_sort]
-                image_labels     = labels[0, indices[scores_sort]]
-
-                if save_path is not None:
-                    draw_detections(image_bgr, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
-                    cv2.imwrite(os.path.join(save_path, '%d_%d.png' % (i, j)), image_bgr)
-                
-                image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)                
-                print(type(image_detections))
-
-                # copy detections to all_detections
-                # all_detections = image_detections[image_detections[:, -1] == 0, :-1]
-
-        # return all_detections
+                all_detections = self.predict(raw_image, bgr_image=image_bgr, save_path=os.path.join(save_path, '%d_%d.png' % (i, j)), image_type=image_type)
 
 def parse_args(args):
     """ Parse the arguments.
