@@ -88,6 +88,8 @@ class RetinaNetWrapper(object):
         if convert_model:
             self.model = models.convert_model(self.model, anchor_params=anchor_params)
 
+        tf.summary(self.model)
+
         self.score_threshold = score_threshold
         self.max_detections  = max_detections
         self.image_min_side  = image_min_side
@@ -123,7 +125,7 @@ class RetinaNetWrapper(object):
                     raw_image = raw_image.transpose((2, 0, 1))
 
                 print(raw_image.shape)
-                
+
                 # run network
                 boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(raw_image, axis=0))[:3]
                 # correct boxes for image scale
