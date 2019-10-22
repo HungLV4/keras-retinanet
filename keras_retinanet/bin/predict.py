@@ -24,7 +24,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
-from ..utils.image import read_image, to_bgr, preprocess_image
+from ..utils.image import read_image, to_bgr, preprocess_image, resize_image
 
 TRAINING_MIN_SIZE = 800
 TRAINING_MAX_SIZE = 1333
