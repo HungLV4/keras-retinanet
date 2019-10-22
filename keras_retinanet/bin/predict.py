@@ -106,7 +106,7 @@ class RetinaNetWrapper(object):
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
                 raw_image   = dataset.GetRasterBand(1).ReadAsArray(j, i, cols, rows).astype(np.float)      
-                image_bgr   = to_bgr(img.copy())
+                image_bgr   = to_bgr(raw_image.copy())
 
                 image        = preprocess_image(raw_image.copy(), image_type)
                 image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
