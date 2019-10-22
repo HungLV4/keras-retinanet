@@ -84,11 +84,12 @@ class RetinaNetWrapper(object):
         # load the model
         print('Loading model, this may take a second...')
         self.model = models.load_model(model_path, backbone_name=backbone)
-        # optionally convert the model
+       
+       # optionally convert the model
         if convert_model:
             self.model = models.convert_model(self.model, anchor_params=anchor_params)
 
-        tf.summary(self.model)
+        print(self.model.summary())
 
         self.score_threshold = score_threshold
         self.max_detections  = max_detections
