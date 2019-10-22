@@ -10,6 +10,7 @@ import keras
 import tensorflow as tf
 
 import cv2
+import tifffile as tiff
 
 import gdal
 from gdalconst import *
@@ -96,26 +97,31 @@ class RetinaNetWrapper(object):
         tilesize_row = 1024
         tilesize_col = 1024
 
-        dataset     = gdal.Open(image_path, GA_ReadOnly)
-        size_column = dataset.RasterXSize
-        size_row    = dataset.RasterYSize
-        size_band   = dataset.RasterCount
+        # dataset     = gdal.Open(image_path, GA_ReadOnly)
+        # size_column = dataset.RasterXSize
+        # size_row    = dataset.RasterYSize
+
+        image       = tiff.imread(image_path)
+        size_row    = image.shape[0]
+        size_column = image.shape[1]
+
         for i in range(0, size_row, tilesize_row):
             for j in range(0, size_column, tilesize_col):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
-                raw_image   = dataset.GetRasterBand(1).ReadAsArray(j, i, cols, rows).astype(np.float)      
+                # raw_image   = dataset.GetRasterBand(1).ReadAsArray(j, i, cols, rows).astype(np.float)      
+                raw_image   = image[i: i + rows, j: j + cols, :3]
                 image_bgr   = to_bgr(raw_image.copy())
 
-                image        = preprocess_image(raw_image.copy(), image_type)
-                image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
+                raw_image           = preprocess_image(raw_image, image_type)
+                raw_image, scale    = resize_image(raw_image, min_side=self.image_min_side, max_side=self.image_max_side)
 
                 if keras.backend.image_data_format() == 'channels_first':
                     image = image.transpose((2, 0, 1))
 
                 # run network
-                boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
+                boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(raw_image, axis=0))[:3]
                 # correct boxes for image scale
                 boxes /= scale
 
