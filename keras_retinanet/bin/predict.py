@@ -5,6 +5,8 @@ import numpy as np
 import argparse
 
 import keras
+
+# tf version 1.15.0-rc3
 import tensorflow as tf
 
 import cv2
@@ -29,7 +31,7 @@ TRAINING_MAX_SIZE = 1333
 def get_session():
     """ Construct a modified tf session.
     """
-    config = tf.compat.v1.ConfigProto()
+    config = tf.compat.ConfigProto()
     config.gpu_options.allow_growth = True
     return tf.compat.v1.Session(config=config)
 
@@ -91,7 +93,7 @@ class RetinaNetWrapper(object):
         self.image_max_side  = image_max_side
         self.num_classes     = max(params.CLASSES.values()) + 1
 
-    def predict_large_image(self, image_path, save_path=None):
+    def predict_large_image(self, image_path, save_path=None, image_type="planet"):
         tilesize_row = 1024
         tilesize_col = 1024
 
@@ -107,7 +109,7 @@ class RetinaNetWrapper(object):
                 raw_image   = dataset.GetRasterBand(1).ReadAsArray(j, i, cols, rows).astype(np.float)      
                 image_bgr   = to_bgr(img.copy())
 
-                image        = preprocess_image(raw_image.copy())
+                image        = preprocess_image(raw_image.copy(), image_type)
                 image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
                 if keras.backend.image_data_format() == 'channels_first':
@@ -147,6 +149,7 @@ def parse_args(args):
     """
     parser     = argparse.ArgumentParser(description='Evaluation script for a RetinaNet network.')
     parser.add_argument('--image-path',       help='Path for image need detections.')
+    parser.add_argument('--image-type',       help='Target image type. planet or terrasar. Default: planet', default="planet")
     parser.add_argument('--model',            help='Path to RetinaNet model.')
     parser.add_argument('--convert-model',    help='Convert the model to an inference model (ie. the input is a training model).', action='store_true')
     parser.add_argument('--backbone',         help='The backbone of the model.', default='resnet50')
@@ -191,7 +194,7 @@ def main(args=None):
                                 image_min_side  = args.image_min_side,
                                 image_max_side  = args.image_max_side)
 
-    all_detections = model.predict_large_image(args.image_path, args.save_path)
+    all_detections = model.predict_large_image(args.image_path, args.save_path, args.image_type)
 
     import csv
     with open(os.path.join(args.save_path, 'detections.csv'), mode='w') as csv_file:

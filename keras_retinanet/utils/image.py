@@ -72,7 +72,7 @@ def to_bgr(image):
 
     return image    
 
-def preprocess_image(x, mode='caffe'):
+def preprocess_image(x, mode='caffe', image_type="planet"):
     """ Preprocess an image by subtracting the ImageNet mean.
 
     Args
@@ -96,16 +96,17 @@ def preprocess_image(x, mode='caffe'):
     # x /= 148.3667
     
     # for Planet
-    x -= [6646.1636, 5853.3188, 4089.8762]
-    x /= [1980.1919, 1786.3191, 1544.9279]
-
-    # if mode == 'tf':
-    #     x /= 124.4022
-    #     x -= 1.
-    # elif mode == 'caffe':
-    #     x[..., 0] -= 0
-    #     x[..., 1] -= 0
-    #     x[..., 2] -= 0
+    if image_type == "planet":
+        x -= [6646.1636, 5853.3188, 4089.8762]
+        x /= [1980.1919, 1786.3191, 1544.9279]
+    else:
+        if mode == 'tf':
+            x /= 124.4022
+            x -= 1.
+        elif mode == 'caffe':
+            x[..., 0] -= 0
+            x[..., 1] -= 0
+            x[..., 2] -= 0
 
     return x
 
