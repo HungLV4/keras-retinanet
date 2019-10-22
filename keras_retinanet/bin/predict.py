@@ -83,7 +83,8 @@ class RetinaNetWrapper(object):
         
         # load the model
         print('Loading model, this may take a second...')
-        self.model = models.load_model(model_path, backbone_name=backbone)
+        with tf.device('/cpu:0'):
+            self.model = models.load_model(model_path, backbone_name=backbone)
        
        # optionally convert the model
         if convert_model:
@@ -105,7 +106,6 @@ class RetinaNetWrapper(object):
 
         # run network
         input_image = np.expand_dims(image, axis=0)
-        print(input_image.shape)
 
         boxes, scores, labels = self.model.predict_on_batch(input_image)[:3]
         # correct boxes for image scale
@@ -165,7 +165,6 @@ def parse_args(args):
     parser.add_argument('--model',            help='Path to RetinaNet model.')
     parser.add_argument('--convert-model',    help='Convert the model to an inference model (ie. the input is a training model).', action='store_true')
     parser.add_argument('--backbone',         help='The backbone of the model.', default='resnet50')
-    parser.add_argument('--gpu',              help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--score-threshold',  help='Threshold on score to filter detections with (defaults to 0.05).', default=0.5, type=float)
     parser.add_argument('--max-detections',   help='Max Detections per image (defaults to 100).', default=100, type=int)
     parser.add_argument('--save-path',        help='Path for saving images with detections (doesn\'t work for COCO).')
@@ -182,8 +181,6 @@ def main(args=None):
     args = parse_args(args)
 
     # optionally choose specific GPU
-    if args.gpu:
-        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
     keras.backend.tensorflow_backend.set_session(get_session())
 
     # make save path if it doesn't exist

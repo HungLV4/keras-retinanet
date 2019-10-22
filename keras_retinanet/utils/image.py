@@ -91,15 +91,12 @@ def preprocess_image(x, mode='caffe', image_type="planet"):
     # covert always to float32 to keep compatibility with opencv
     x = x.astype(np.float32)
 
-    # for TerraSAR-X
-    # x -= 124.4022
-    # x /= 148.3667
-    
-    # for Planet
     if image_type == "planet":
+        # for Planet
         x -= [6646.1636, 5853.3188, 4089.8762]
         x /= [1980.1919, 1786.3191, 1544.9279]
     else:
+        # for terrasar
         if mode == 'tf':
             x /= 124.4022
             x -= 1.
