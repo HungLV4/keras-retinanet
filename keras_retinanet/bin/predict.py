@@ -100,8 +100,8 @@ class RetinaNetWrapper(object):
         image        = preprocess_image(raw_image.copy())
         image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
-        if keras.backend.image_data_format() == 'channels_first':
-            image = image.transpose((2, 0, 1))
+        # if keras.backend.image_data_format() == 'channels_first':
+        #     image = image.transpose((2, 0, 1))
 
         # run network
         input_image = np.expand_dims(image, axis=0)
