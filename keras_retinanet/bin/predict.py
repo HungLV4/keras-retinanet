@@ -24,7 +24,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
-from ..utils.image import to_bgr, preprocess_image
+from ..utils.image import read_image, to_bgr, preprocess_image
 
 TRAINING_MIN_SIZE = 800
 TRAINING_MAX_SIZE = 1333
@@ -101,7 +101,7 @@ class RetinaNetWrapper(object):
         # size_column = dataset.RasterXSize
         # size_row    = dataset.RasterYSize
 
-        image       = tiff.imread(image_path)
+        image       = read_image(image_path)
         size_row    = image.shape[0]
         size_column = image.shape[1]
 
@@ -111,7 +111,9 @@ class RetinaNetWrapper(object):
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
                 # raw_image   = dataset.GetRasterBand(1).ReadAsArray(j, i, cols, rows).astype(np.float)      
-                raw_image   = image[i: i + rows, j: j + cols, :3]
+                raw_image   = image[i: i + rows, j: j + cols, ...]
+                
+
                 image_bgr   = to_bgr(raw_image.copy())
 
                 raw_image           = preprocess_image(raw_image, image_type)
@@ -145,7 +147,7 @@ class RetinaNetWrapper(object):
                 
                 image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)                
                 print(type(image_detections))
-                
+
                 # copy detections to all_detections
                 # all_detections = image_detections[image_detections[:, -1] == 0, :-1]
 
