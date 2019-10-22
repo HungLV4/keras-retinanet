@@ -91,7 +91,6 @@ class RetinaNetWrapper(object):
         self.max_detections  = max_detections
         self.image_min_side  = image_min_side
         self.image_max_side  = image_max_side
-        self.num_classes     = max(params.CLASSES.values()) + 1
 
     def predict_large_image(self, image_path, save_path=None, image_type="planet"):
         tilesize_row = 1024
@@ -140,7 +139,7 @@ class RetinaNetWrapper(object):
                 
                 image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)                
                 # copy detections to all_detections
-                all_detections = image_detections[image_detections[:, -1] == self.num_classes - 1, :-1]
+                all_detections = image_detections[image_detections[:, -1] == 0, :-1]
 
         return all_detections
 
