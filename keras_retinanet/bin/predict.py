@@ -83,7 +83,8 @@ class RetinaNetWrapper(object):
         
         # load the model
         print('Loading model, this may take a second...')
-        self.model = models.load_model(model_path, backbone_name=backbone)
+        with tf.device('/cpu:0'):
+            self.model = models.load_model(model_path, backbone_name=backbone)
        
        # optionally convert the model
         if convert_model:
@@ -115,8 +116,6 @@ class RetinaNetWrapper(object):
             
                 # raw_image   = dataset.GetRasterBand(1).ReadAsArray(j, i, cols, rows).astype(np.float)      
                 raw_image   = image[i: i + rows, j: j + cols, ...]
-                
-
                 image_bgr   = to_bgr(raw_image.copy())
 
                 raw_image           = preprocess_image(raw_image, image_type)
@@ -124,8 +123,6 @@ class RetinaNetWrapper(object):
 
                 if keras.backend.image_data_format() == 'channels_first':
                     raw_image = raw_image.transpose((2, 0, 1))
-
-                print(raw_image.shape)
 
                 # run network
                 boxes, scores, labels = self.model.predict_on_batch(np.expand_dims(raw_image, axis=0))[:3]
