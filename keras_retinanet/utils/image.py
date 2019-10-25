@@ -97,13 +97,8 @@ def preprocess_image(x, mode='caffe', image_type="planet"):
         x /= [1980.1919, 1786.3191, 1544.9279]
     else:
         # for terrasar
-        if mode == 'tf':
-            x /= 124.4022
-            x -= 1.
-        elif mode == 'caffe':
-            x[..., 0] -= 0
-            x[..., 1] -= 0
-            x[..., 2] -= 0
+        x /= 124.4022
+        x -= 148.3667
 
     return x
 
