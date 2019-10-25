@@ -121,7 +121,6 @@ class RetinaNetWrapper(object):
     def predict(self, raw_image, image_type="planet"):
         image        = preprocess_image(raw_image.copy(), image_type=image_type)
         image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
-
         if keras.backend.image_data_format() == 'channels_first':
             image = image.transpose((2, 0, 1))
 
@@ -162,7 +161,6 @@ class RetinaNetWrapper(object):
             size_band   = dataset.RasterCount
             
             readTileFunc    = readTiffTile
-
         elif file_type in ["dim", "DIM"]:
             dataset     = ProductIO.readProduct(image_path)
             size_column = dataset.getSceneRasterWidth()
@@ -184,7 +182,7 @@ class RetinaNetWrapper(object):
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
                 raw_image   = readTileFunc(dataset, j, i, cols, rows, size_band)
-                
+                print(raw_image.shape)
                 if image_type == "terrasar":
                     # TerraSAR image has only one channel
                     raw_image     = np.expand_dims(raw_image, axis=2)
@@ -196,6 +194,7 @@ class RetinaNetWrapper(object):
                     raw_image = raw_image[..., :3]
                     if reverse:
                         raw_image = raw_image[..., ::-1].copy()
+                print(raw_image.shape)
 
                 image_boxes, image_scores, image_labels  = self.predict(raw_image, image_type=image_type)
                 # add offset to image_boxes
