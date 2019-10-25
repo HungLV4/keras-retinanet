@@ -170,8 +170,7 @@ class RetinaNetWrapper(object):
                 image_bgr = image_bgr[..., ::-1].copy()
         image_bgr       = to_bgr(image_bgr)
         
-        all_detections  = np.empty((0, 4))
-
+        all_detections  = np.array([[0, 0, size_column - 1, size_row - 1]])
         for i in tqdm(range(0, size_row, tilesize_row)):
             for j in tqdm(range(0, size_column, tilesize_col)):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
@@ -205,6 +204,8 @@ class RetinaNetWrapper(object):
         
         with open(os.path.join(save_path, '%s.csv' % basename), mode='w') as csv_file:
             writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            # write down detections
+            # the first line will be extent of image
             for d in all_detections:
                 ulx, uly = xyToLatLonFunc(dataset, d[0], d[1])
                 brx, bry = xyToLatLonFunc(dataset, d[2], d[3])
