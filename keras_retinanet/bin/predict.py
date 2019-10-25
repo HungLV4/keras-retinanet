@@ -161,6 +161,13 @@ class RetinaNetWrapper(object):
 
         # image_bgr       = np.zeros((size_row, size_column, 3), dtype=np.uint8)
         image_bgr       = readTiffTile(dataset, 0, 0, size_column, size_row, size_band)
+        if image_type == "planet":
+            reverse = False
+            if image_bgr.shape[2] == 3:
+                reverse = True
+            image_bgr = image_bgr[..., :3]
+            if reverse:
+                image_bgr = image_bgr[..., ::-1].copy()
         image_bgr       = to_bgr(image_bgr)
         
         all_detections  = np.empty((0, 4))
