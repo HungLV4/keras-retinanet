@@ -22,6 +22,8 @@ if __name__ == "__main__" and __package__ is None:
     import keras_retinanet.bin  # noqa: F401
     __package__ = "keras_retinanet.bin"
 
+from tqdm import tqdm
+
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.image import read_image, to_bgr, preprocess_image, resize_image
@@ -136,7 +138,7 @@ class RetinaNetWrapper(object):
 
         image_bgr   = to_bgr(image.copy())
 
-        for i in range(0, size_row, tilesize_row):
+        for i in tqdm(range(0, size_row, tilesize_row)):
             for j in range(0, size_column, tilesize_col):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
