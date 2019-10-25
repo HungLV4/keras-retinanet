@@ -30,39 +30,10 @@ from tqdm import tqdm
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.image import read_image, to_bgr, preprocess_image, resize_image
+from ..utils.geo import *
 
 TRAINING_MIN_SIZE = 800
 TRAINING_MAX_SIZE = 1333
-
-def xyToLatLonTiff(dataset, x, y):
-    ulx, xres, xskew, uly, yskew, yres  = dataset.GetGeoTransform()
-    
-    pos_x = ulx + (x * xres)
-    pos_y = uly + (y * yres)
-    
-    return pos_x, pos_y
-
-def readTiffTile(dataset, xLeft, yTop, sizeX, sizeY, size_band):
-    data = np.zeros((sizeY, sizeX, size_band), dtype=np.float)
-    for i in range(size_band):
-        data[..., i] = dataset.GetRasterBand(i + 1).ReadAsArray(xLeft, yTop, sizeX, sizeY)
-    
-    return data
-
-def xyToLatLonDim(dataset, x, y):
-    pos = dataset.getSceneGeoCoding().getGeoPos(PixelPos(x, y), None)
-    return pos.getLon(), pos.getLat()
-
-def readDimTile(dataset, xLeft, yTop, sizeX, sizeY, size_band):
-    bandName    = dataset.getBandNames()
-
-    data = np.zeros((sizeY, sizeX, size_band), dtype=np.float)
-    for i in range(size_band):
-        band_data = np.zeros(sizeX * sizeY)
-        dataset.getBand(bandName[i]).readPixels(xLeft, yTop, sizeX, sizeY, band_data)
-        data[..., i] = band_data.reshape(sizeY, sizeX)
-    
-    return data
 
 def get_session():
     """ Construct a modified tf session.
