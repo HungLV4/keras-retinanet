@@ -33,15 +33,23 @@ from ..utils.image import read_image, to_bgr, preprocess_image, resize_image
 TRAINING_MIN_SIZE = 800
 TRAINING_MAX_SIZE = 1333
 
-def readTiffTile(dataset, xLeft, yTop, sizeX, sizeY, band):
-    data = dataset.GetRasterBand(band + 1).ReadAsArray(xLeft, yTop, sizeX, sizeY)
+def readTiffTile(dataset, xLeft, yTop, sizeX, sizeY, size_band):
+    data = np.zeros((sizeY, sizeX, size_band), dtype=np.float)
+    for i in range(size_band):
+        data[..., i] = dataset.GetRasterBand(i + 1).ReadAsArray(xLeft, yTop, sizeX, sizeY)
+    
     return data
 
-def readDimTile(dataset, xLeft, yTop, sizeX, sizeY, band):
-    bandName    = dataset.getBandNames()[band]
-    data        = np.zeros(sizeX * sizeY)
-    dataset.getBand(bandName).readPixels(xLeft, yTop, sizeX, sizeY, data)
-    return data.reshape(sizeY, sizeX)
+def readDimTile(dataset, xLeft, yTop, sizeX, sizeY, size_band):
+    bandName    = dataset.getBandNames()
+
+    data = np.zeros((sizeY, sizeX, size_band), dtype=np.float)
+    for i in range(size_band):
+        band_data = np.zeros(sizeX * sizeY)
+        dataset.getBand(bandName[i]).readPixels(xLeft, yTop, sizeX, sizeY, band_data)
+        data[..., i] = band_data.reshape(sizeY, sizeX)
+    
+    return data
 
 def get_session():
     """ Construct a modified tf session.
@@ -172,7 +180,7 @@ class RetinaNetWrapper(object):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
-                raw_image   = readTileFunc(dataset, j, i, cols, rows, 0)
+                raw_image   = readTileFunc(dataset, j, i, cols, rows, size_band)
                 if size_band == 1:
                     # TerraSAR image has only one channel
                     raw_image     = np.expand_dims(raw_image, axis=2)
