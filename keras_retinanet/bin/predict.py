@@ -16,6 +16,8 @@ import gdal
 from gdalconst import *
 from osgeo import gdal_array, osr
 
+from snappy import ProductIO
+
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -30,6 +32,16 @@ from ..utils.image import read_image, to_bgr, preprocess_image, resize_image
 
 TRAINING_MIN_SIZE = 800
 TRAINING_MAX_SIZE = 1333
+
+def readTiffTile(dataset, xLeft, yTop, sizeX, sizeY, band):
+    data = dataset.GetRasterBand(band).ReadAsArray(xLeft, yTop, sizeX, sizeY)
+    return data
+
+def readDimTile(dataset, xLeft, yTop, sizeX, sizeY, band):
+    bandName    = dataset.getBandNames()[band]
+    data        = np.zeros(sizeX * sizeY)
+    dataset.getBand(bandName).readPixels(xLeft, yTop, sizeX, sizeY, data)
+    return data.reshape(sizeY, sizeX)
 
 def get_session():
     """ Construct a modified tf session.
@@ -132,18 +144,40 @@ class RetinaNetWrapper(object):
         tilesize_row = 1025
         tilesize_col = 1025
 
-        image       = read_image(image_path)
-        size_row    = image.shape[0]
-        size_column = image.shape[1]
+        file_type   = os.path.basename(image_path).split(".")[-1]
+        basename    = os.path.basename(image_path).split(".")[0]
 
-        image_bgr   = to_bgr(image.copy())
+        if file_type in ["tif", "TIF", "tiff", "TIFF"]:
+            dataset     = gdal.Open(input_file, GA_ReadOnly)
+            size_column = dataset.RasterXSize
+            size_row    = dataset.RasterYSize
+            size_band   = dataset.RasterCount
+            
+            readTileFunc    = readTiffTile
 
+        elif file_type in ["dim", "DIM"]:
+            dataset     = ProductIO.readProduct(input_file)
+            size_column = dataset.getSceneRasterWidth()
+            size_row    = dataset.getSceneRasterHeight()
+            size_band   = len(dataset.getBandNames())
+
+            readTileFunc    = readDimTile
+        else:
+            print("File type %s not supported" % file_type)
+            return
+
+        image_bgr = np.zeros((size_row, size_column, 3), dtype=np.uint8)
         for i in tqdm(range(0, size_row, tilesize_row)):
             for j in tqdm(range(0, size_column, tilesize_col)):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
-                raw_image       = image[i: i + rows, j: j + cols, ...]
+                raw_image   = readTileFunc(j, i, cols, rows)
+                if size_band == 1:
+                    # TerraSAR image has only one channel
+                    raw_image     = np.expand_dims(raw_image, axis=2)
+                    raw_image     = np.repeat(raw_image, 3, axis=2)
+
                 image_boxes, image_scores, image_labels  = self.predict(raw_image, image_type=image_type)
                 # add offset to image_boxes
                 image_boxes[..., 0] += j
@@ -157,7 +191,6 @@ class RetinaNetWrapper(object):
                 if save_path is not None:
                     draw_detections(image_bgr, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
         
-        basename = os.path.basename(image_path).split(".")[0]
         cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
 
 def parse_args(args):
