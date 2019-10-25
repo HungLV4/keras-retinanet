@@ -181,10 +181,18 @@ class RetinaNetWrapper(object):
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
                 raw_image   = readTileFunc(dataset, j, i, cols, rows, size_band)
-                if size_band == 1:
+                
+                if image_type == "terrasar":
                     # TerraSAR image has only one channel
                     raw_image     = np.expand_dims(raw_image, axis=2)
                     raw_image     = np.repeat(raw_image, 3, axis=2)
+                elif image_type == "planet":
+                    reverse = False
+                    if raw_image.shape[2] == 3:
+                        reverse = True
+                    raw_image = raw_image[..., :3]
+                    if reverse:
+                        raw_image = raw_image[..., ::-1].copy()
 
                 image_boxes, image_scores, image_labels  = self.predict(raw_image, image_type=image_type)
                 # add offset to image_boxes
