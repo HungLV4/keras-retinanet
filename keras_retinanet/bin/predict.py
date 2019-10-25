@@ -29,7 +29,7 @@ from tqdm import tqdm
 
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
-from ..utils.image import read_image, to_bgr, preprocess_image, resize_image
+from ..utils.image import read_image, read_image_bgr, preprocess_image, resize_image
 from ..utils.geo import *
 
 TRAINING_MIN_SIZE = 800
@@ -159,8 +159,9 @@ class RetinaNetWrapper(object):
             print("File type %s not supported" % file_type)
             return
 
-        image_bgr = np.zeros((size_row, size_column, 3), dtype=np.uint8)
-        all_detections = np.empty((0, 4))
+        # image_bgr       = np.zeros((size_row, size_column, 3), dtype=np.uint8)
+        image_bgr       = read_image_bgr(image_path)
+        all_detections  = np.empty((0, 4))
 
         for i in tqdm(range(0, size_row, tilesize_row)):
             for j in tqdm(range(0, size_column, tilesize_col)):
@@ -198,6 +199,11 @@ class RetinaNetWrapper(object):
             for d in all_detections:
                 ulx, uly = xyToLatLonFunc(dataset, d[0], d[1])
                 brx, bry = xyToLatLonFunc(dataset, d[2], d[3])
+
+                if image_type == "planet":
+                    ulx, uly = utmToLatLng(48, ulx, uly)
+                    brx, bry = utmToLatLng(48, brx, bry)
+                
                 writer.writerow([ulx, uly, brx, bry])
 
         image_bgr = cv2.resize(image_bgr, None, fx=0.2, fy=0.2)
