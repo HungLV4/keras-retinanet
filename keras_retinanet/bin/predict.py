@@ -34,7 +34,7 @@ TRAINING_MIN_SIZE = 800
 TRAINING_MAX_SIZE = 1333
 
 def readTiffTile(dataset, xLeft, yTop, sizeX, sizeY, band):
-    data = dataset.GetRasterBand(band).ReadAsArray(xLeft, yTop, sizeX, sizeY)
+    data = dataset.GetRasterBand(band + 1).ReadAsArray(xLeft, yTop, sizeX, sizeY)
     return data
 
 def readDimTile(dataset, xLeft, yTop, sizeX, sizeY, band):
