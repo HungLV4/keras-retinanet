@@ -29,7 +29,7 @@ from tqdm import tqdm
 
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
-from ..utils.image import read_image, read_image_bgr, preprocess_image, resize_image
+from ..utils.image import  to_bgr, preprocess_image, resize_image
 from ..utils.geo import *
 
 TRAINING_MIN_SIZE = 800
@@ -160,7 +160,9 @@ class RetinaNetWrapper(object):
             return
 
         # image_bgr       = np.zeros((size_row, size_column, 3), dtype=np.uint8)
-        image_bgr       = read_image_bgr(image_path)
+        image_bgr       = readTiffTile(dataset, 0, 0, size_column, size_row)
+        image_bgr       = to_bgr(image_bgr)
+        
         all_detections  = np.empty((0, 4))
 
         for i in tqdm(range(0, size_row, tilesize_row)):
