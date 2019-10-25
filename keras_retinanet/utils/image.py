@@ -24,18 +24,20 @@ from .transform import change_transform_origin
 
 def read_image(path):
     image     = tiff.imread(path)
+    
     if len(image.shape) == 2:
+        # TerraSAR image has only one channel
         image     = np.expand_dims(image, axis=2)
         image     = np.repeat(image, 3, axis=2)
-    
-    # Planet image hase two formats RGB (3 channels) or BGRP (4 channels)
-    # if 3 channels, reverse to BGR format
-    reverse = False
-    if image.shape[2] == 3:
-        reverse = True
-    image = image[..., :3]
-    if reverse:
-        image = image[..., ::-1].copy()
+    else:
+        # Planet image hase two formats RGB (3 channels) or BGRP (4 channels)
+        # if 3 channels, reverse to BGR format
+        reverse = False
+        if image.shape[2] == 3:
+            reverse = True
+        image = image[..., :3]
+        if reverse:
+            image = image[..., ::-1].copy()
 
     return image
 

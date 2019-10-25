@@ -96,8 +96,8 @@ class RetinaNetWrapper(object):
         self.image_min_side  = image_min_side
         self.image_max_side  = image_max_side
 
-    def predict(self, raw_image, bgr_image=None, save_path=None, image_type="planet"):
-        image        = preprocess_image(raw_image.copy())
+    def predict(self, raw_image, image_type="planet"):
+        image        = preprocess_image(raw_image.copy(), image_type=image_type)
         image, scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
         if keras.backend.image_data_format() == 'channels_first':
@@ -123,19 +123,8 @@ class RetinaNetWrapper(object):
         image_boxes      = boxes[0, indices[scores_sort], :]
         image_scores     = scores[scores_sort]
         image_labels     = labels[0, indices[scores_sort]]
-        image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
-
-        if save_path is not None:
-            if bgr_image is None:
-                bgr_image = to_bgr(raw_image.copy())
-            
-            draw_detections(bgr_image, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
-            cv2.imwrite(save_path, bgr_image)
         
-        # copy detections to all_detections
-        all_detections = image_detections[..., :-1]
-
-        return all_detections
+        return image_boxes, image_scores, image_labels
 
     def predict_large_image(self, image_path, save_path=None, image_type="planet"):
         tilesize_row = 1025
@@ -145,16 +134,29 @@ class RetinaNetWrapper(object):
         size_row    = image.shape[0]
         size_column = image.shape[1]
 
+        image_bgr   = to_bgr(image.copy())
+
         for i in range(0, size_row, tilesize_row):
             for j in range(0, size_column, tilesize_col):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
-                raw_image   = image[i: i + rows, j: j + cols, ...]
-                image_bgr   = to_bgr(raw_image.copy())
+                raw_image       = image[i: i + rows, j: j + cols, ...]
+                image_boxes, image_scores, image_labels, image_detections  = self.predict(raw_image, image_type=image_type)
+                # add offset to image_boxes
+                image_boxes[..., 0] += j
+                image_boxes[..., 1] += i
+                image_boxes[..., 2] += j
+                image_boxes[..., 3] += i
 
-                all_detections = self.predict(raw_image, bgr_image=image_bgr, save_path=os.path.join(save_path, '%d_%d.png' % (i, j)), image_type=image_type)
-                print(i, j, all_detections.shape)
+                # concatenate results
+                # image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
+
+                if save_path is not None:
+                    draw_detections(image_bgr, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
+        
+        basename = os.path.basename(image_path).split(".")[0]
+        cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
 
 def parse_args(args):
     """ Parse the arguments.
