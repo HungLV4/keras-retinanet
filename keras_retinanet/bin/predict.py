@@ -11,12 +11,13 @@ import tensorflow as tf
 
 import cv2
 import csv
+import geoio
 
 import gdal
 from gdalconst import *
 from osgeo import gdal_array, osr
 
-from snappy import ProductIO
+from snappy import ProductIO, PixelPos, GeoPos
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
@@ -33,12 +34,24 @@ from ..utils.image import read_image, to_bgr, preprocess_image, resize_image
 TRAINING_MIN_SIZE = 800
 TRAINING_MAX_SIZE = 1333
 
+def xyToLatLonTiff(dataset, x, y):
+    ulx, xres, xskew, uly, yskew, yres  = dataset.GetGeoTransform()
+    
+    pos_x = ulx + (x * xres)
+    pos_y = uly + (y * yres)
+    
+    return pos_x, pos_y
+
 def readTiffTile(dataset, xLeft, yTop, sizeX, sizeY, size_band):
     data = np.zeros((sizeY, sizeX, size_band), dtype=np.float)
     for i in range(size_band):
         data[..., i] = dataset.GetRasterBand(i + 1).ReadAsArray(xLeft, yTop, sizeX, sizeY)
     
     return data
+
+def xyToLatLonDim(dataset, x, y):
+    pos = dataset.getSceneGeoCoding().getGeoPos(PixelPos(x, y), None)
+    return pos.getLon(), pos.getLat()
 
 def readDimTile(dataset, xLeft, yTop, sizeX, sizeY, size_band):
     bandName    = dataset.getBandNames()
@@ -99,7 +112,8 @@ class RetinaNetWrapper(object):
                 score_threshold=0.05,
                 max_detections =2000,
                 image_min_side =800,
-                image_max_side =1333):
+                image_max_side =1333
+    ):
         super(RetinaNetWrapper, self).__init__()
         
         # load the model
@@ -159,7 +173,8 @@ class RetinaNetWrapper(object):
             size_column = dataset.RasterXSize
             size_row    = dataset.RasterYSize
             size_band   = dataset.RasterCount
-            
+
+            xyToLatLonFunc  = xyToLatLonTiff
             readTileFunc    = readTiffTile
         elif file_type in ["dim", "DIM"]:
             dataset     = ProductIO.readProduct(image_path)
@@ -167,6 +182,7 @@ class RetinaNetWrapper(object):
             size_row    = dataset.getSceneRasterHeight()
             size_band   = len(dataset.getBandNames())
 
+            xyToLatLonFunc  = xyToLatLonDim
             readTileFunc    = readDimTile
         else:
             print("File type %s not supported" % file_type)
@@ -208,8 +224,10 @@ class RetinaNetWrapper(object):
         
         with open(os.path.join(save_path, '%s.csv' % basename), mode='w') as csv_file:
             writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            for detection in all_detections:
-                writer.writerow(detection)
+            for d in all_detections:
+                ulx, uly = xyToLatLonFunc(dataset, d[0], d[1])
+                brx, bry = xyToLatLonFunc(dataset, d[2], d[3])
+                writer.writerow([ulx, uly, brx, bry])
 
         image_bgr = cv2.resize(image_bgr, None, fx=0.2, fy=0.2)
         cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
