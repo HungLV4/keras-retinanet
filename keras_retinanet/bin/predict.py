@@ -215,7 +215,7 @@ class RetinaNetWrapper(object):
                 
                 writer.writerow([ulx, uly, brx, bry])
 
-        image_bgr = cv2.resize(image_bgr, None, fx=0.2, fy=0.2)
+        image_bgr = cv2.resize(image_bgr, None, fx=0.5, fy=0.5)
         cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
 
 def parse_args(args):
