@@ -206,7 +206,7 @@ class RetinaNetWrapper(object):
                 if save_path is not None:
                     draw_detections(image_bgr, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
         
-        with open(os.path.join(args.save_path, '%s.csv' % basename), mode='w') as csv_file:
+        with open(os.path.join(save_path, '%s.csv' % basename), mode='w') as csv_file:
             writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             for detection in all_detections:
                 writer.writerow(detection)
