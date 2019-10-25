@@ -173,7 +173,6 @@ class RetinaNetWrapper(object):
             return
 
         image_bgr = np.zeros((size_row, size_column, 3), dtype=np.uint8)
-
         all_detections = np.empty((0, 4))
 
         for i in tqdm(range(0, size_row, tilesize_row)):
@@ -182,10 +181,9 @@ class RetinaNetWrapper(object):
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
                 raw_image   = readTileFunc(dataset, j, i, cols, rows, size_band)
-                print(raw_image.shape)
                 if image_type == "terrasar":
                     # TerraSAR image has only one channel
-                    raw_image     = np.expand_dims(raw_image, axis=2)
+                    # raw_image     = np.expand_dims(raw_image, axis=2)
                     raw_image     = np.repeat(raw_image, 3, axis=2)
                 elif image_type == "planet":
                     reverse = False
@@ -194,7 +192,6 @@ class RetinaNetWrapper(object):
                     raw_image = raw_image[..., :3]
                     if reverse:
                         raw_image = raw_image[..., ::-1].copy()
-                print(raw_image.shape)
 
                 image_boxes, image_scores, image_labels  = self.predict(raw_image, image_type=image_type)
                 # add offset to image_boxes
