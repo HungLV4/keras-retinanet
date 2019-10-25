@@ -64,7 +64,6 @@ def draw_detections(image, boxes, scores, labels, color=(255, 0, 0), label_to_na
 
     # debug
     selection = np.where(scores > 0)[0]
-
     for i in selection:
         draw_box(image, boxes[i, :], color=color)
 
@@ -134,7 +133,7 @@ class RetinaNetWrapper(object):
             cv2.imwrite(save_path, bgr_image)
         
         # copy detections to all_detections
-        all_detections = image_detections[image_detections[:, -1] == 0, :-1]
+        all_detections = image_detections[..., :-1]
 
         return all_detections
 
@@ -155,6 +154,7 @@ class RetinaNetWrapper(object):
                 image_bgr   = to_bgr(raw_image.copy())
 
                 all_detections = self.predict(raw_image, bgr_image=image_bgr, save_path=os.path.join(save_path, '%d_%d.png' % (i, j)), image_type=image_type)
+                print(i, j, all_detections.shape)
 
 def parse_args(args):
     """ Parse the arguments.
