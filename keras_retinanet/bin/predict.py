@@ -10,7 +10,7 @@ import keras
 import tensorflow as tf
 
 import cv2
-import tifffile as tiff
+import csv
 
 import gdal
 from gdalconst import *
@@ -175,6 +175,9 @@ class RetinaNetWrapper(object):
             return
 
         image_bgr = np.zeros((size_row, size_column, 3), dtype=np.uint8)
+
+        all_detections = np.empty((0, 4))
+
         for i in tqdm(range(0, size_row, tilesize_row)):
             for j in tqdm(range(0, size_column, tilesize_col)):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
@@ -202,11 +205,17 @@ class RetinaNetWrapper(object):
                 image_boxes[..., 3] += i
 
                 # concatenate results
-                # image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
+                all_detections = np.concatenate([all_detections, image_boxes], axis=0)
 
                 if save_path is not None:
                     draw_detections(image_bgr, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
         
+        with open(os.path.join(args.save_path, '%s.csv' % basename), mode='w') as csv_file:
+            writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            for detection in all_detections:
+                writer.writerow(detection)
+
+        image_bgr = cv2.resize(image_bgr, None, fx=0.2, fy=0.2)
         cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
 
 def parse_args(args):
@@ -257,13 +266,6 @@ def main(args=None):
                                 image_max_side  = args.image_max_side)
 
     model.predict_large_image(args.image_path, args.save_path, args.image_type)
-
-    # import csv
-    # with open(os.path.join(args.save_path, 'detections.csv'), mode='w') as csv_file:
-    #     writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-
-    #     for detection in all_detections:
-    #         writer.writerow(detection)
 
 if __name__ == '__main__':
     main()
