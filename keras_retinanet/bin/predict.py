@@ -139,7 +139,7 @@ class RetinaNetWrapper(object):
         image_bgr   = to_bgr(image.copy())
 
         for i in tqdm(range(0, size_row, tilesize_row)):
-            for j in range(0, size_column, tilesize_col):
+            for j in tqdm(range(0, size_column, tilesize_col)):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
