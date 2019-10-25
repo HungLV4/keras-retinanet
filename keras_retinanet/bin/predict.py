@@ -142,7 +142,7 @@ class RetinaNetWrapper(object):
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
                 raw_image       = image[i: i + rows, j: j + cols, ...]
-                image_boxes, image_scores, image_labels, image_detections  = self.predict(raw_image, image_type=image_type)
+                image_boxes, image_scores, image_labels  = self.predict(raw_image, image_type=image_type)
                 # add offset to image_boxes
                 image_boxes[..., 0] += j
                 image_boxes[..., 1] += i
