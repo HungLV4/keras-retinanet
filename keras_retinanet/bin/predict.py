@@ -148,7 +148,7 @@ class RetinaNetWrapper(object):
         basename    = os.path.basename(image_path).split(".")[0]
 
         if file_type in ["tif", "TIF", "tiff", "TIFF"]:
-            dataset     = gdal.Open(input_file, GA_ReadOnly)
+            dataset     = gdal.Open(image_path, GA_ReadOnly)
             size_column = dataset.RasterXSize
             size_row    = dataset.RasterYSize
             size_band   = dataset.RasterCount
@@ -156,7 +156,7 @@ class RetinaNetWrapper(object):
             readTileFunc    = readTiffTile
 
         elif file_type in ["dim", "DIM"]:
-            dataset     = ProductIO.readProduct(input_file)
+            dataset     = ProductIO.readProduct(image_path)
             size_column = dataset.getSceneRasterWidth()
             size_row    = dataset.getSceneRasterHeight()
             size_band   = len(dataset.getBandNames())
