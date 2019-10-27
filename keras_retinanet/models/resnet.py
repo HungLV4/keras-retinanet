@@ -69,10 +69,10 @@ class ResNetBackbone(Backbone):
         if backbone not in allowed_backbones:
             raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
-    def preprocess_image(self, inputs):
+    def preprocess_image(self, inputs, image_type="planet"):
         """ Takes as input an image and prepares it for being passed through the network.
         """
-        return preprocess_image(inputs, mode='caffe')
+        return preprocess_image(inputs, image_type=image_type)
 
 
 def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=None, **kwargs):
