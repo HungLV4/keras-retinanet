@@ -53,6 +53,7 @@ class Generator(keras.utils.Sequence):
         compute_anchor_targets=anchor_targets_bbox,
         compute_shapes=guess_shapes,
         preprocess_image=preprocess_image,
+        image_type="planet",
         config=None
     ):
         """ Initialize Generator object.
@@ -80,6 +81,7 @@ class Generator(keras.utils.Sequence):
         self.compute_anchor_targets = compute_anchor_targets
         self.compute_shapes         = compute_shapes
         self.preprocess_image       = preprocess_image
+        self.image_type             = image_type
         self.config                 = config
 
         # Define groups
@@ -246,7 +248,7 @@ class Generator(keras.utils.Sequence):
         """ Preprocess image and its annotations.
         """
         # preprocess the image
-        image = self.preprocess_image(image)
+        image = self.preprocess_image(image, image_type=self.image_type)
 
         # resize image
         image, image_scale = self.resize_image(image)

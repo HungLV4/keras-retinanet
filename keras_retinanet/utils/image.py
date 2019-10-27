@@ -72,7 +72,7 @@ def to_bgr(image):
 
     return image    
 
-def preprocess_image(x, mode='caffe', image_type="planet"):
+def preprocess_image(x, image_type="planet"):
     """ Preprocess an image by subtracting the ImageNet mean.
 
     Args
@@ -97,8 +97,8 @@ def preprocess_image(x, mode='caffe', image_type="planet"):
         x /= [1980.1919, 1786.3191, 1544.9279]
     else:
         # for terrasar
-        x /= 124.4022
         x -= 148.3667
+        x /= 124.4022
 
     return x
 
