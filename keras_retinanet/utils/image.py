@@ -49,16 +49,7 @@ def read_image_bgr(path):
     """
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
     # read images
-    image = tiff.imread(path)
-
-    # Planet image hase two formats RGB (3 channels) or BGRP (4 channels)
-    # if 3 channels, reverse to BGR format for visualization (OpenCV is BGR)
-    reverse = False
-    if image.shape[2] == 3:
-        reverse = True
-    image = image[..., :3]
-    if reverse:
-        image = image[..., ::-1].copy()
+    image = read_image(path)
 
     # scale to uint8
     image = to_bgr(image)
