@@ -159,7 +159,6 @@ class RetinaNetWrapper(object):
             print("File type %s not supported" % file_type)
             return
 
-        # image_bgr       = np.zeros((size_row, size_column, 3), dtype=np.uint8)
         image_bgr       = readTiffTile(dataset, 0, 0, size_column, size_row, size_band)
         if image_type == "planet":
             reverse = False
