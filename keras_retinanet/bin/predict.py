@@ -159,7 +159,7 @@ class RetinaNetWrapper(object):
             print("File type %s not supported" % file_type)
             return
 
-        image_bgr       = readTiffTile(dataset, 0, 0, size_column, size_row, size_band)
+        image_bgr       = readTileFunc(dataset, 0, 0, size_column, size_row, size_band, scale_factor=0.2)
         if image_type == "planet":
             reverse = False
             if image_bgr.shape[2] == 3:
@@ -199,6 +199,7 @@ class RetinaNetWrapper(object):
                 all_detections = np.concatenate([all_detections, image_boxes], axis=0)
 
                 if save_path is not None:
+                    resize_image_boxes = image_boxes * 0.2
                     draw_detections(image_bgr, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
         
         with open(os.path.join(save_path, '%s.csv' % basename), mode='w') as csv_file:
@@ -215,7 +216,6 @@ class RetinaNetWrapper(object):
                 
                 writer.writerow([ulx, uly, brx, bry])
 
-        image_bgr = cv2.resize(image_bgr, None, fx=0.5, fy=0.5)
         cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
 
 def parse_args(args):

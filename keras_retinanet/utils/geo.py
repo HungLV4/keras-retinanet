@@ -60,24 +60,28 @@ def xyToLatLonTiff(dataset, x, y):
     
     return pos_x, pos_y
 
-def readTiffTile(dataset, xLeft, yTop, sizeX, sizeY, size_band):
-    data = np.zeros((sizeY, sizeX, size_band), dtype=np.float)
+def readTiffTile(dataset, xLeft, yTop, sizeX, sizeY, size_band, scale_factor=1.0):
+    data = np.zeros((int(sizeY * scale_factor), int(sizeX * scale_factor), size_band), dtype=np.float)
     for i in range(size_band):
-        data[..., i] = dataset.GetRasterBand(i + 1).ReadAsArray(xLeft, yTop, sizeX, sizeY)
+        band_data = dataset.GetRasterBand(i + 1).ReadAsArray(xLeft, yTop, sizeX, sizeY)
+
+        data[..., i] = np.resize(band_data, (int(sizeY * scale_factor), int(sizeX * scale_factor)))
+    
+    return data
+
+def readDimTile(dataset, xLeft, yTop, sizeX, sizeY, size_band, scale_factor=1.0):
+    bandName    = dataset.getBandNames()
+
+    data = np.zeros((int(sizeY * scale_factor), int(sizeX * scale_factor), size_band), dtype=np.float)
+    for i in range(size_band):
+        band_data = np.zeros(sizeX * sizeY)
+        dataset.getBand(bandName[i]).readPixels(xLeft, yTop, sizeX, sizeY, band_data)
+        band_data = band_data.reshape(sizeY, sizeX)
+
+        data[..., i] = np.resize(band_data, (int(sizeY * scale_factor), int(sizeX * scale_factor)))
     
     return data
 
 def xyToLatLonDim(dataset, x, y):
     pos = dataset.getSceneGeoCoding().getGeoPos(PixelPos(x, y), None)
     return pos.getLon(), pos.getLat()
-
-def readDimTile(dataset, xLeft, yTop, sizeX, sizeY, size_band):
-    bandName    = dataset.getBandNames()
-
-    data = np.zeros((sizeY, sizeX, size_band), dtype=np.float)
-    for i in range(size_band):
-        band_data = np.zeros(sizeX * sizeY)
-        dataset.getBand(bandName[i]).readPixels(xLeft, yTop, sizeX, sizeY, band_data)
-        data[..., i] = band_data.reshape(sizeY, sizeX)
-    
-    return data
