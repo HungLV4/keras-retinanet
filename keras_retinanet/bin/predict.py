@@ -34,6 +34,7 @@ from ..utils.geo import *
 
 TRAINING_MIN_SIZE = 800
 TRAINING_MAX_SIZE = 1333
+scale_factor      = 0.2
 
 def get_session():
     """ Construct a modified tf session.
@@ -159,15 +160,8 @@ class RetinaNetWrapper(object):
             print("File type %s not supported" % file_type)
             return
 
-        image_bgr       = readTileFunc(dataset, 0, 0, size_column, size_row, size_band, scale_factor=0.2)
-        if image_type == "planet":
-            reverse = False
-            if image_bgr.shape[2] == 3:
-                reverse = True
-            image_bgr = image_bgr[..., :3]
-            if reverse:
-                image_bgr = image_bgr[..., ::-1].copy()
-        image_bgr       = to_bgr(image_bgr)
+        if save_path is not None:
+            image_bgr = np.zeros((int(size_row * scale_factor), int(size_column * scale_factor), 3))
         
         all_detections  = np.array([[0, 0, size_column - 1, size_row - 1]])
         for i in tqdm(range(0, size_row, tilesize_row)):
@@ -175,32 +169,33 @@ class RetinaNetWrapper(object):
                 rows = tilesize_row if i + tilesize_row < size_row else size_row - i
                 cols = tilesize_col if j + tilesize_col < size_column else size_column - j
             
-                raw_image   = readTileFunc(dataset, j, i, cols, rows, size_band)
+                patch   = readTileFunc(dataset, j, i, cols, rows, size_band)
                 if image_type == "terrasar":
                     # TerraSAR image has only one channel
-                    # raw_image     = np.expand_dims(raw_image, axis=2)
-                    raw_image     = np.repeat(raw_image, 3, axis=2)
+                    # raw_image     = np.expand_dims(patch, axis=2)
+                    patch     = np.repeat(patch, 3, axis=2)
                 elif image_type == "planet":
                     reverse = False
-                    if raw_image.shape[2] == 3:
+                    if patch.shape[2] == 3:
                         reverse = True
-                    raw_image = raw_image[..., :3]
+                    patch = patch[..., :3]
                     if reverse:
-                        raw_image = raw_image[..., ::-1].copy()
+                        patch = patch[..., ::-1].copy()
 
-                image_boxes, image_scores, image_labels  = self.predict(raw_image, image_type=image_type)
+                image_boxes, image_scores, image_labels  = self.predict(patch, image_type=image_type)
+
+                if save_path is not None:
+                    patch_bgr = to_bgr(patch)
+                    draw_detections(patch_bgr, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
+                    image_bgr[i: i + rows, j: j + cols, ...] = patch_bgr
+
                 # add offset to image_boxes
                 image_boxes[..., 0] += j
                 image_boxes[..., 1] += i
                 image_boxes[..., 2] += j
                 image_boxes[..., 3] += i
-
                 # concatenate results
                 all_detections = np.concatenate([all_detections, image_boxes], axis=0)
-
-                if save_path is not None:
-                    resize_image_boxes = image_boxes * 0.2
-                    draw_detections(image_bgr, image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
         
         with open(os.path.join(save_path, '%s.csv' % basename), mode='w') as csv_file:
             writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -216,7 +211,8 @@ class RetinaNetWrapper(object):
                 
                 writer.writerow([ulx, uly, brx, bry])
 
-        cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
+        if save_path is not None:
+            cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
 
 def parse_args(args):
     """ Parse the arguments.
