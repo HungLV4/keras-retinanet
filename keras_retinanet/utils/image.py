@@ -88,8 +88,8 @@ def preprocess_image(x, image_type="planet"):
         x /= [1980.1919, 1786.3191, 1544.9279]
     else:
         # for terrasar
-        x -= 148.3667
-        x /= 124.4022
+        x -= 124.4022
+        x /= 148.3667
 
     return x
 
