@@ -1,6 +1,8 @@
 import numpy as np
 import math
 
+from snappy import PixelPos
+
 def utmToLatLng(zone, easting, northing, northernHemisphere=True):
     if not northernHemisphere:
         northing = 10000000 - northing
