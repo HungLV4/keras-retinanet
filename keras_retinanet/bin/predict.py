@@ -207,14 +207,10 @@ class RetinaNetWrapper(object):
             # write down detections
             # the first line will be extent of image
             for d in all_detections:
-                ulx, uly = xyToLatLonFunc(dataset, d[0], d[1])
-                brx, bry = xyToLatLonFunc(dataset, d[2], d[3])
-
+                lx, ly = xyToLatLonFunc(dataset, (d[0] + d[2]) / 2, (d[1] + d[3]) / 2)
                 if image_type == "planet":
-                    ulx, uly = utmToLatLng(48, ulx, uly)
-                    brx, bry = utmToLatLng(48, brx, bry)
-                
-                writer.writerow([ulx, uly, brx, bry])
+                    lx, ly = utmToLatLng(48, ulx, uly)
+                writer.writerow([lx, ly, d[2] - d[0], d[3] - d[1]])
 
         cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
 
