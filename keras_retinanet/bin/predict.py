@@ -206,12 +206,15 @@ class RetinaNetWrapper(object):
             writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             # write down detections
             # the first line will be extent of image
-            for d in all_detections:
-                lx, ly = xyToLatLonFunc(dataset, (d[0] + d[2]) / 2, (d[1] + d[3]) / 2)
-                # check if utm-based
-                if lx > 90 or lx < -90 or ly > 180 or ly < -180:
-                    lx, ly = utmToLatLng(48, lx, ly)
-                writer.writerow([lx, ly, d[2] - d[0], d[3] - d[1]])
+            for i, d in enumerate(all_detections):
+                if i == 0:
+                    writer.writerow(d)
+                else:
+                    lx, ly = xyToLatLonFunc(dataset, (d[0] + d[2]) / 2, (d[1] + d[3]) / 2)
+                    if lx > 90 or lx < -90 or ly > 180 or ly < -180:
+                        lx, ly = utmToLatLng(48, lx, ly)
+                    
+                    writer.writerow([lx, ly, d[2] - d[0], d[3] - d[1]])
 
         cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
 
