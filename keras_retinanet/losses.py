@@ -96,22 +96,16 @@ def mixup_focal(alpha=0.25, gamma=2.0):
         labels         = y_true[:, :, :-2] # B x N x num_classes
 
         classification = y_pred # B x N x num_classes
-
         # filter out "ignore" anchors
         indices        = backend.where(keras.backend.not_equal(anchor_state, -1))
         labels         = backend.gather_nd(labels, indices)
         classification = backend.gather_nd(classification, indices)
         lambda_weigths = backend.gather_nd(lambda_weigths, indices)
-
-        del y_true
-        del indices
-
         # compute the focal weights
         alpha_factor = keras.backend.ones_like(labels) * alpha
         alpha_factor = backend.where(keras.backend.equal(labels, 1), alpha_factor, 1 - alpha_factor)
         focal_weight = backend.where(keras.backend.equal(labels, 1), 1 - classification, classification)
         focal_weight = alpha_factor * focal_weight ** gamma
-
         # generate mixup label and
         # compute mixup_lambda_weights and mixup_focal_weights
         # since all mixup images are background, all mixup_labels is 0
