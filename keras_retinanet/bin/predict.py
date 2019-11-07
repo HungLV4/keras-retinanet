@@ -208,7 +208,12 @@ class RetinaNetWrapper(object):
             # the first line will be extent of image
             for i, d in enumerate(all_detections):
                 if i == 0:
-                    writer.writerow(d)
+                    ulx, uly = xyToLatLonFunc(dataset, d[0], d[1])
+                    brx, bry = xyToLatLonFunc(dataset, d[2], d[3])
+                    if ulx > 90 or ulx < -90 or uly > 180 or uly < -180:
+                        ulx, uly = utmToLatLng(48, ulx, uly)
+                        brx, bry = utmToLatLng(48, brx, bry)
+                    writer.writerow([ulx, uly, brx, bry])
                 else:
                     lx, ly = xyToLatLonFunc(dataset, (d[0] + d[2]) / 2, (d[1] + d[3]) / 2)
                     if lx > 90 or lx < -90 or ly > 180 or ly < -180:
