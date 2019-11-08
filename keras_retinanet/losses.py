@@ -109,16 +109,17 @@ def mixup_focal(alpha=0.25, gamma=2.0):
         # generate mixup label and
         # compute mixup_lambda_weights and mixup_focal_weights
         # since all mixup images are background, all mixup_labels is 0
-        mixup_labels            = keras.backend.zeros_like(labels)
-        mixup_lambda_weights    = 1 - lambda_weigths
+        # mixup_labels            = keras.backend.zeros_like(labels)
+        # mixup_lambda_weights    = 1 - lambda_weigths
         # since all mixup labels is 0, all mixup alpha factor is (1 - alpha)
-        mixup_alpha_factor      = keras.backend.ones_like(mixup_labels) * (1- alpha)
-        mixup_focal_weight      = keras.backend.ones_like(mixup_labels) * classification
-        mixup_focal_weight      = mixup_alpha_factor * mixup_focal_weight ** gamma
+        # mixup_alpha_factor      = keras.backend.ones_like(mixup_labels) * (1- alpha)
+        # mixup_focal_weight      = keras.backend.ones_like(mixup_labels) * classification
+        # mixup_focal_weight      = mixup_alpha_factor * mixup_focal_weight ** gamma
 
         # final focal loss is the combination of two focal loss
-        cls_loss = focal_weight * lambda_weigths * keras.backend.binary_crossentropy(labels, classification) \
-                    + mixup_focal_weight * mixup_lambda_weights * keras.backend.binary_crossentropy(mixup_labels, classification)
+        # cls_loss = focal_weight * lambda_weigths * keras.backend.binary_crossentropy(labels, classification) \
+        #             + mixup_focal_weight * mixup_lambda_weights * keras.backend.binary_crossentropy(mixup_labels, classification)
+        cls_loss = focal_weight * lambda_weigths * keras.backend.binary_crossentropy(labels, classification)
         
         # compute the normalizer: the number of positive anchors
         normalizer = backend.where(keras.backend.equal(anchor_state, 1))
