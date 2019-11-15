@@ -29,7 +29,7 @@ from tqdm import tqdm
 
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
-from ..utils.image import  to_bgr, preprocess_image, resize_image
+from ..utils.image import  read_image_bgr, to_bgr, preprocess_image, resize_image
 from ..utils.geo import *
 
 TRAINING_MIN_SIZE = 800
@@ -132,7 +132,7 @@ class RetinaNetWrapper(object):
         
         return image_boxes, image_scores, image_labels
 
-    def predict_large_image(self, image_path, save_path=None, image_type="planet"):
+    def predict_large_image(self, image_path, vis_path=None, scale_factor=0.2, save_path=None, image_type="planet"):
         tilesize_row = 1025
         tilesize_col = 1025
 
@@ -159,15 +159,23 @@ class RetinaNetWrapper(object):
             print("File type %s not supported" % file_type)
             return
 
-        image_bgr       = readTileFunc(dataset, 0, 0, size_column, size_row, size_band, scale_factor=0.2)
-        if image_type == "planet":
-            reverse = False
-            if image_bgr.shape[2] == 3:
-                reverse = True
-            image_bgr = image_bgr[..., :3]
-            if reverse:
-                image_bgr = image_bgr[..., ::-1].copy()
-        image_bgr       = to_bgr(image_bgr)
+        # read rgb image for visualization
+        if vis_path is None:
+		    image_bgr       = readTileFunc(dataset, 0, 0, size_column, size_row, size_band, scale_factor=scale_factor)
+		    if image_type == "terrasar":
+		        # TerraSAR image has only one channel
+		        # raw_image     = np.expand_dims(raw_image, axis=2)
+		        image_bgr     = np.repeat(image_bgr, 3, axis=2)
+		    elif image_type == "planet":
+		        reverse = False
+		        if image_bgr.shape[2] == 3:
+		            reverse = True
+		        image_bgr = image_bgr[..., :3]
+		        if reverse:
+		            image_bgr = image_bgr[..., ::-1].copy()
+		    image_bgr       = to_bgr(image_bgr)
+	    else:
+	    	image_bgr 		= read_image_bgr(vis_path)
         
         all_detections  = np.array([[0, 0, size_column - 1, size_row - 1]])
         for i in tqdm(range(0, size_row, tilesize_row)):
@@ -199,7 +207,7 @@ class RetinaNetWrapper(object):
                 all_detections = np.concatenate([all_detections, image_boxes], axis=0)
 
                 if save_path is not None:
-                    resize_image_boxes = image_boxes * 0.2
+                    resize_image_boxes = image_boxes * scale_factor
                     draw_detections(image_bgr, resize_image_boxes, image_scores, image_labels, score_threshold=self.score_threshold)
         
         with open(os.path.join(save_path, '%s.csv' % basename), mode='w') as csv_file:
@@ -228,6 +236,8 @@ def parse_args(args):
     """
     parser     = argparse.ArgumentParser(description='Evaluation script for a RetinaNet network.')
     parser.add_argument('--image-path',       help='Path for image need detections.')
+    parser.add_argument('--vis-path',         help='Path for visualize image.')
+    parser.add_argument('--vis-scale-factor', help='Scale factor for visualize image.', type=float, default=0.2)
     parser.add_argument('--image-type',       help='Target image type. planet or terrasar. Default: planet', default="planet")
     parser.add_argument('--model',            help='Path to RetinaNet model.')
     parser.add_argument('--convert-model',    help='Convert the model to an inference model (ie. the input is a training model).', action='store_true')
@@ -270,7 +280,7 @@ def main(args=None):
                                 image_min_side  = args.image_min_side,
                                 image_max_side  = args.image_max_side)
 
-    model.predict_large_image(args.image_path, args.save_path, args.image_type)
+    model.predict_large_image(args.image_path, args.vis_path, args.save_path, args.image_type)
 
 if __name__ == '__main__':
     main()

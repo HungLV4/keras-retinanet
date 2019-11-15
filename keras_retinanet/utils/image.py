@@ -52,7 +52,7 @@ def read_image_bgr(path):
     image = read_image(path)
 
     # scale to uint8
-    image = to_bgr(image)
+    # image = to_bgr(image)
     
     return image
 
