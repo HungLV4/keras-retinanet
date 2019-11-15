@@ -132,7 +132,7 @@ class RetinaNetWrapper(object):
         
         return image_boxes, image_scores, image_labels
 
-    def predict_large_image(self, image_path, vis_path=None, scale_factor=0.2, save_path=None, image_type="planet"):
+    def predict_large_image(self, image_path, resolution, vis_path=None, scale_factor=0.2, save_path=None, image_type="planet"):
         tilesize_row = 1025
         tilesize_col = 1025
 
@@ -227,7 +227,7 @@ class RetinaNetWrapper(object):
                     if lx > 90 or lx < -90 or ly > 180 or ly < -180:
                         lx, ly = utmToLatLng(48, lx, ly)
                     
-                    writer.writerow([lx, ly, d[2] - d[0], d[3] - d[1]])
+                    writer.writerow([lx, ly, (d[2] - d[0]) * resolution, (d[3] - d[1]) * resolution])
 
         cv2.imwrite(os.path.join(save_path, '%s_vis.png' % basename), image_bgr)
 
@@ -238,6 +238,7 @@ def parse_args(args):
     parser.add_argument('--image-path',       help='Path for image need detections.')
     parser.add_argument('--vis-path',         help='Path for visualize image.')
     parser.add_argument('--vis-scale-factor', help='Scale factor for visualize image.', type=float, default=0.2)
+    parser.add_argument('--res', 			  help='Image resolution.', type=float, default=2.5)
     parser.add_argument('--image-type',       help='Target image type. planet or terrasar. Default: planet', default="planet")
     parser.add_argument('--model',            help='Path to RetinaNet model.')
     parser.add_argument('--convert-model',    help='Convert the model to an inference model (ie. the input is a training model).', action='store_true')
@@ -280,7 +281,7 @@ def main(args=None):
                                 image_min_side  = args.image_min_side,
                                 image_max_side  = args.image_max_side)
 
-    model.predict_large_image(args.image_path, args.vis_path, args.save_path, args.image_type)
+    model.predict_large_image(args.image_path, args.res, args.vis_path, args.scale_factor, args.save_path, args.image_type)
 
 if __name__ == '__main__':
     main()
