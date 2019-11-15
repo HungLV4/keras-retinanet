@@ -236,7 +236,7 @@ def parse_args(args):
 	"""
 	parser     = argparse.ArgumentParser(description='Evaluation script for a RetinaNet network.')
 	parser.add_argument('--image-path',       help='Path for image need detections.')
-	parser.add_argument('--vis-path',         help='Path for visualize image.')
+	parser.add_argument('--vis-path',         help='Path for visualize image.', default=None)
 	parser.add_argument('--vis-scale-factor', help='Scale factor for visualize image.', type=float, default=0.2)
 	parser.add_argument('--res', 			  help='Image resolution.', type=float, default=2.5)
 	parser.add_argument('--image-type',       help='Target image type. planet or terrasar. Default: planet', default="planet")
