@@ -281,7 +281,7 @@ def main(args=None):
 							image_min_side  = args.image_min_side,
 							image_max_side  = args.image_max_side)
 
-	model.predict_large_image(args.image_path, args.res, args.vis_path, args.scale_factor, args.save_path, args.image_type)
+	model.predict_large_image(args.image_path, args.res, args.vis_path, args.vis_scale_factor, args.save_path, args.image_type)
 
 if __name__ == '__main__':
 	main()
