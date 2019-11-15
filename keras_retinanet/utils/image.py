@@ -49,7 +49,7 @@ def read_image_bgr(path):
     """
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
     # read images
-    image = read_image(path)
+    image = np.array(Image.open(path).convert('RGB'))
 
     # scale to uint8
     # image = to_bgr(image)
